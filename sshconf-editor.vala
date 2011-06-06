@@ -71,7 +71,7 @@ namespace SSHConf
             keys_model = new Gtk.ListStore(1, typeof(string));
             for(i=0; Entry.KEYS[i] != null; i++)
             {
-                (keys_model as ListStore).insert_with_values(null,0, 0, Entry.KEYS[i]);
+                (keys_model as ListStore).insert_with_values(null,i, 0, Entry.KEYS[i]);
             }
 
             var SizeGroup = new Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL);

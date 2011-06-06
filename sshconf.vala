@@ -202,12 +202,19 @@ namespace SSHConf
             /* button box */
             var hbox = new Gtk.Toolbar();
             /* add */
-            add_rule_button = new Gtk.ToolButton.from_stock("gtk-add");
+            var icon = new GLib.ThemedIcon.with_default_fallbacks( "list-add-symbolic");
+            var image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
+            add_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-add");
+
+
+
             (add_rule_button as Gtk.ToolButton).clicked.connect(add_entry);
                                  //, false, false, 0);
             hbox.insert(add_rule_button,0);
             /* remove */
-            remove_rule_button = new Gtk.ToolButton.from_stock("gtk-remove");
+            icon = new GLib.ThemedIcon.with_default_fallbacks( "list-remove-symbolic");
+            image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
+            remove_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-remove");
             remove_rule_button.sensitive = false;
 
             hbox.insert(remove_rule_button,1);
