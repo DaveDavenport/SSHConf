@@ -159,6 +159,7 @@ namespace SSHConf
             box.pack_start(sw, true, true, 0);
 
             var column = new Gtk.TreeViewColumn();
+            column.set_title("Entries");
             tree.append_column(column);
             var renderer = new Gtk.CellRendererText();
 
