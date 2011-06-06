@@ -23,13 +23,15 @@ using Gee;
 namespace SSHConf
 {
 
-    public class Entry : GLib.Object 
+    public class Entry : GLib.Object
     {
         /* Grepped from the man page */
-        /* zcat /Storage/qball/Debian/usr/share/man/man5/ssh_config.5.gz | grep ".It Cm" | awk  '{print "\""$3"\","}' 
+        /* zcat /Storage/qball/Debian/usr/share/man/man5/ssh_config.5.gz |
+         * grep ".It Cm" | awk  '{print "\""$3"\","}'
          * Remove host and hostname
          */
-        public static string[] KEYS = {
+        public static string[] KEYS =
+        {
             "AddressFamily",
             "BatchMode",
             "BindAddress",
@@ -40,8 +42,8 @@ namespace SSHConf
             "ClearAllForwardings",
             "Compression",
             "CompressionLevel",
-            "ConnectionAttempts",
             "ConnectTimeout",
+            "ConnectionAttempts",
             "ControlMaster",
             "ControlPath",
             "DynamicForward",
@@ -50,15 +52,15 @@ namespace SSHConf
             "ForwardAgent",
             "ForwardX11",
             "ForwardX11Trusted",
-            "GatewayPorts",
-            "GlobalKnownHostsFile",
             "GSSAPIAuthentication",
             "GSSAPIDelegateCredentials",
             "GSSAPITrustDns",
+            "GatewayPorts",
+            "GlobalKnownHostsFile",
             "HashKnownHosts",
-            "HostbasedAuthentication",
             "HostKeyAlgorithms",
             "HostKeyAlias",
+            "HostbasedAuthentication",
             "IdentitiesOnly",
             "IdentityFile",
             "KbdInteractiveDevices",
@@ -75,10 +77,10 @@ namespace SSHConf
             "Protocol",
             "ProxyCommand",
             "PubkeyAuthentication",
+            "RSAAuthentication",
             "RekeyLimit",
             "RemoteForward",
             "RhostsRSAAuthentication",
-            "RSAAuthentication",
             "SendEnv",
             "ServerAliveCountMax",
             "ServerAliveInterval",
@@ -97,47 +99,56 @@ namespace SSHConf
         };
         /* Name of the entry */
         private string _name = "";
-        public string name {
-                get {
-                    return _name;
-                } 
-                set {
-                    if(_name != value)
-                    {
-                        _name = value;
-                        changed();
-                    }
+        public string name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                if(_name != value)
+                {
+                    _name = value;
+                    changed();
                 }
+            }
         }
 
         /* Hostname */
-        private string _hostname = ""; 
-        public string hostname {
-                get {
-                    return _hostname; 
-                }
-                set {
-                    if(_hostname != value)
-                    {
-                        _hostname = value;
-                        changed();
-                    }
-                }               
-        }
-        
-        private bool _enabled =true;
-        public bool enabled {
-                get{
-                    return _enabled;
-                }
-                set {
-                    if(_enabled != value) {
-                        _enabled = value;
-                        changed();
-                    }
+        private string _hostname = "";
+        public string hostname
+        {
+            get
+            {
+                return _hostname;
+            }
+            set
+            {
+                if(_hostname != value)
+                {
+                    _hostname = value;
+                    changed();
                 }
             }
-        
+        }
+
+        private bool _enabled =true;
+        public bool enabled
+        {
+            get
+            {
+                return _enabled;
+            }
+            set
+            {
+                if(_enabled != value)
+                {
+                    _enabled = value;
+                    changed();
+                }
+            }
+        }
 
         public signal void changed();
         public MultiMap<string, string> settings =  new HashMultiMap<string, string>();
@@ -162,7 +173,8 @@ namespace SSHConf
 
         public void write_entry(GLib.DataOutputStream da) throws GLib.IOError
         {
-            try {
+            try
+            {
                 if(!_enabled) da.put_string("#");
                 da.put_string("Host ");
                 da.put_string(name);
@@ -188,11 +200,12 @@ namespace SSHConf
                     }
                 }
 
-            }catch (GLib.IOError er) {
+            }
+            catch (GLib.IOError er)
+            {
                 throw er;
             }
         }
-
 
         ~Entry()
         {
