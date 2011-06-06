@@ -69,7 +69,7 @@ namespace SSHConf
                             if(command[0] == '#')
                             {
                                 disabled = true;
-                                command = command.substring(1, -1);
+                                command = command.substring(1, -1).strip();
                             }
                             if(command == "host")
                             {
