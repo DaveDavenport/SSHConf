@@ -41,7 +41,7 @@ namespace SSHConf
 
 
         private void cell_data_func(
-                Gtk.TreeViewColumn column, 
+                Gtk.CellLayout column, 
                 Gtk.CellRenderer renderer, 
                 Gtk.TreeModel model, 
                 Gtk.TreeIter iter)
@@ -51,7 +51,17 @@ namespace SSHConf
 
             renderer.set("text", entry.name);
         }
+        private void cell_data_func2(
+                Gtk.CellLayout column, 
+                Gtk.CellRenderer renderer, 
+                Gtk.TreeModel model, 
+                Gtk.TreeIter iter)
+        {
+            Entry entry;
+            model.get(iter, 0, out entry);
 
+            renderer.set("text", entry.hostname);
+        }
 
         /**
          * Loading file
@@ -172,9 +182,21 @@ namespace SSHConf
             sw.add(tree);
             box.pack_start(sw, true, true, 0);
 
+            var column = new Gtk.TreeViewColumn();
+            tree.append_column(column);
             var renderer = new Gtk.CellRendererText();
-            tree.insert_column_with_data_func(0,"Rules", renderer, cell_data_func);
-
+//            tree.insert_column_with_data_func(0,"Rules", renderer, cell_data_func);
+            column.pack_start(renderer, true);
+            column.set_cell_data_func(renderer, cell_data_func);
+            
+            renderer = new Gtk.CellRendererText();
+            renderer.set("foreground", "grey");
+            renderer.set("xalign", 1.0);
+            
+            //tree.insert_column_with_data_func(1,"Hostname", renderer, cell_data_func2);
+            column.pack_start(renderer, false);
+            column.set_cell_data_func(renderer, cell_data_func2);
+            
             tree.row_activated.connect((source, path, column) => {
                 Gtk.TreeIter iter;
                 if(source.get_model().get_iter(out iter, path))

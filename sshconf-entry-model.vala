@@ -137,6 +137,16 @@ class EntryModel : GLib.Object, Gtk.TreeModel
         return true;
     }
     
+    private void entry_changed(Entry en)
+    {
+        int index = entries.index(en);
+        Gtk.TreePath rpath = new Gtk.TreePath.from_indices(index, -1);
+        Gtk.TreeIter riter;
+        if(this.get_iter(out riter, rpath))
+        {
+            row_changed(rpath, riter);
+        }
+    }
     public void add_entry (Entry entry)
     {
         entries.append(entry);
@@ -146,7 +156,10 @@ class EntryModel : GLib.Object, Gtk.TreeModel
         {
             row_inserted(path, iter);
         }
+        
+        entry.changed.connect(entry_changed);
     }
+    
     public void remove_entry (Entry entry)
     {
         unowned List<Entry> en = entries.find(entry);
@@ -155,6 +168,7 @@ class EntryModel : GLib.Object, Gtk.TreeModel
             int index = entries.index(entry);
             Gtk.TreePath path = new Gtk.TreePath.from_indices(index, -1);
             Entry e = (owned)en.data;
+            e.changed.disconnect(entry_changed);
             entries.delete_link(en);
             e = null;
             /* signal row deleted */

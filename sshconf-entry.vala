@@ -102,7 +102,11 @@ namespace SSHConf
                     return _name;
                 } 
                 set {
-                    _name = value;
+                    if(_name != value)
+                    {
+                        _name = value;
+                        changed();
+                    }
                 }
         }
 
@@ -113,7 +117,11 @@ namespace SSHConf
                     return _hostname; 
                 }
                 set {
-                    _hostname = value;
+                    if(_hostname != value)
+                    {
+                        _hostname = value;
+                        changed();
+                    }
                 }               
         }
 
