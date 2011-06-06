@@ -199,11 +199,13 @@ namespace SSHConf
         
         public override void response (int id)
         {
-
-
             this.destroy();
         }
 
+        ~Editor()
+        {
+            stdout.printf("~Editor\n");
+        }
         public Editor (Gtk.Window parent, Entry entry)
         {
 
@@ -213,12 +215,12 @@ namespace SSHConf
 
             name_entry.set_text(entry.name);
             this.entry.notify["name"].connect(() =>{
-                    name_entry.set_text(entry.name);
+                    name_entry.set_text(this.entry.name);
             });
 
             hostname_entry.set_text(entry.hostname);
             this.entry.notify["hostname"].connect(() =>{
-                    hostname_entry.set_text(entry.hostname);
+                    hostname_entry.set_text(this.entry.hostname);
             });
 
             this.entry.changed.connect(() => {

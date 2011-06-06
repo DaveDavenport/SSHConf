@@ -24,7 +24,14 @@ namespace SSHConf
 {
 class EntryModel : GLib.Object, Gtk.TreeModel
 {
+    public enum Columns {
+        ENTRY = 0,
+        NAME,
+        HOSTNAME,
+        NUM_COLUMNS        
+    }
     private GLib.List<Entry> entries;
+    private int stamp = 1;
     
     ~EntryModel()
     {
@@ -34,7 +41,16 @@ class EntryModel : GLib.Object, Gtk.TreeModel
 
     public GLib.Type get_column_type(int index)
     {
-        return typeof(SSHConf.Entry);
+        switch((EntryModel.Columns)index)
+        {
+            case Columns.ENTRY:
+                return typeof(SSHConf.Entry);
+            case Columns.NAME:
+            case Columns.HOSTNAME:
+                return typeof(string);
+            default:
+                GLib.error("Unknown column");
+        }
     }
 
     public Gtk.TreeModelFlags get_flags()
@@ -49,20 +65,24 @@ class EntryModel : GLib.Object, Gtk.TreeModel
         if(en != null)
         {
             iter = Gtk.TreeIter();
-            // @todo fix stamp to update when list changes 
-            iter.stamp = 1;
+            iter.stamp = this.stamp;
             iter.user_data = en;
             iter.user_data2 = indices[0].to_pointer();
             return true;
         }
         return false;
     }
-    
+    /**
+     * Get the number of columns in this model
+     */
     public int get_n_columns()
     {
-        return 1;
+        return (int)Columns.NUM_COLUMNS;
     }
     
+    /**
+     * Get path from iter
+     */
     public Gtk.TreePath get_path(Gtk.TreeIter iter)
     {
         int index = (int)(iter.user_data2);
@@ -70,19 +90,37 @@ class EntryModel : GLib.Object, Gtk.TreeModel
         Gtk.TreePath path = new Gtk.TreePath.from_indices(index, -1);
         return path;
     }
-    
+    /**
+     * get value
+     */
     public void get_value(Gtk.TreeIter iter, int column,out Value val)
     {
         val = Value(this.get_column_type(column));
         Entry? en =  ((List<Entry>)iter.user_data).data;
-        val.set_object(en);
+        switch((EntryModel.Columns)column)
+        {
+            case Columns.ENTRY:
+                val.set_object(en);
+                return;
+            case Columns.NAME:
+                val.set_string(en.name);
+                return;
+            case Columns.HOSTNAME:
+                val.set_string(en.hostname);
+                return;
+            default:
+                GLib.error("Unknown column");
+        }
     }
 
+    /**
+     * Get the children of iter %parent (always false)
+     * if parent is null return first node
+     */
     public bool iter_children(out Gtk.TreeIter iter, Gtk.TreeIter? parent)
     {
         if(parent != null) return false;
-        this.iter_first(out iter);
-        return true;
+        return this.iter_first(out iter);
     }
     public bool iter_has_child(Gtk.TreeIter iter)
     {
@@ -99,7 +137,7 @@ class EntryModel : GLib.Object, Gtk.TreeModel
         
         if(entry.next == null) return false;
         
-        iter.stamp = 1;
+        iter.stamp = this.stamp;
         iter.user_data = entry.next;
         iter.user_data2 = ((int)(iter.user_data2)+1).to_pointer();
         return true;
@@ -111,7 +149,7 @@ class EntryModel : GLib.Object, Gtk.TreeModel
         unowned List<Entry>? en = entries.nth(n);
         if(en == null) return false;
         
-        iter.stamp = 1;
+        iter.stamp = this.stamp;
         iter.user_data = (void*)en;
         iter.user_data2 = n.to_pointer();
         
@@ -131,7 +169,7 @@ class EntryModel : GLib.Object, Gtk.TreeModel
     public bool iter_first(out Gtk.TreeIter iter)
     {
         if(entries.length() == 0) return false;
-        iter.stamp = 1;
+        iter.stamp = this.stamp;
         iter.user_data = (void*)entries.first();
         iter.user_data2 = (1).to_pointer();
         return true;
@@ -147,21 +185,26 @@ class EntryModel : GLib.Object, Gtk.TreeModel
             row_changed(rpath, riter);
         }
     }
-    public void add_entry (Entry entry)
+    public Gtk.TreePath add_entry (Entry entry)
     {
+        this.stamp++;
         entries.append(entry);
         Gtk.TreePath path = new Gtk.TreePath.from_indices(entries.length()-1,-1);
         Gtk.TreeIter iter;
         if(this.get_iter(out iter, path))
         {
             row_inserted(path, iter);
+        }else{
+            GLib.error("Failed to get iter for new node");
         }
         
         entry.changed.connect(entry_changed);
+        return path;
     }
     
     public void remove_entry (Entry entry)
     {
+        this.stamp++;
         unowned List<Entry> en = entries.find(entry);
         if(en != null)
         {

@@ -39,30 +39,6 @@ namespace SSHConf
             stdout.printf("~Overview\n");
         }
 
-
-        private void cell_data_func(
-                Gtk.CellLayout column, 
-                Gtk.CellRenderer renderer, 
-                Gtk.TreeModel model, 
-                Gtk.TreeIter iter)
-        {
-            Entry entry;
-            model.get(iter, 0, out entry);
-
-            renderer.set("text", entry.name);
-        }
-        private void cell_data_func2(
-                Gtk.CellLayout column, 
-                Gtk.CellRenderer renderer, 
-                Gtk.TreeModel model, 
-                Gtk.TreeIter iter)
-        {
-            Entry entry;
-            model.get(iter, 0, out entry);
-
-            renderer.set("text", entry.hostname);
-        }
-
         /**
          * Loading file
          */
@@ -185,17 +161,16 @@ namespace SSHConf
             var column = new Gtk.TreeViewColumn();
             tree.append_column(column);
             var renderer = new Gtk.CellRendererText();
-//            tree.insert_column_with_data_func(0,"Rules", renderer, cell_data_func);
+
             column.pack_start(renderer, true);
-            column.set_cell_data_func(renderer, cell_data_func);
+            column.set_attributes(renderer, "text", EntryModel.Columns.NAME);
             
             renderer = new Gtk.CellRendererText();
             renderer.set("foreground", "grey");
             renderer.set("xalign", 1.0);
             
-            //tree.insert_column_with_data_func(1,"Hostname", renderer, cell_data_func2);
             column.pack_start(renderer, false);
-            column.set_cell_data_func(renderer, cell_data_func2);
+            column.set_attributes(renderer, "text", EntryModel.Columns.HOSTNAME);
             
             tree.row_activated.connect((source, path, column) => {
                 Gtk.TreeIter iter;
@@ -251,10 +226,10 @@ namespace SSHConf
         {
             Entry e = new Entry();
             e.name = "New entry";
-            (model as EntryModel).add_entry(e);/*insert_with_values(null,  
-                    0,
-                    0, (owned)e,
-                    -1);*/
+
+            Gtk.TreePath path = (model as EntryModel).add_entry(e);
+            tree.get_selection().select_path(path);
+            new Editor(this,e); 
         }
 
         /**
