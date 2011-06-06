@@ -37,16 +37,6 @@ namespace SSHConf
         ~Overview()
         {
             stdout.printf("~Overview\n");
-            Gtk.TreeIter iter;
-            if(model.get_iter_first(out iter))
-            {
-                do{
-                    Entry? en = null;
-                    model.get(iter, 0, out en); 
-                    en = null;
-                }while(model.iter_next(ref iter));
-            }
-            (model as Gtk.ListStore).clear();
         }
 
 
@@ -56,7 +46,7 @@ namespace SSHConf
                 Gtk.TreeModel model, 
                 Gtk.TreeIter iter)
         {
-            unowned Entry entry;
+            Entry entry;
             model.get(iter, 0, out entry);
 
             renderer.set("text", entry.name);
@@ -89,10 +79,10 @@ namespace SSHConf
                             {
                                 current  = new Entry();
                                 current.name = cmds[1].strip(); 
-                                (model as Gtk.ListStore).insert_with_values(null,  
+                                (model as EntryModel).add_entry(current);/*insert_with_values(null,  
                                         i,
                                         0, current,
-                                        -1);
+                                        -1);*/
                                 i++;
                             }
                             else if (cmds[0].down() == "hostname")
@@ -171,7 +161,7 @@ namespace SSHConf
 
 
             /* Model */
-            model = new Gtk.ListStore(1,typeof(GLib.Object));
+            model = new EntryModel();//Gtk.ListStore(1,typeof(GLib.Object));
 
             /* Treeview */
             var sw = new Gtk.ScrolledWindow(null,null);
@@ -215,8 +205,7 @@ namespace SSHConf
                 {
                     Entry? en = null;
                     model.get(iter, 0, out en);
-                    (model as Gtk.ListStore).remove(iter);
-                    en = null;
+                    (model as EntryModel).remove_entry(en);
                 }
             });
 
@@ -240,10 +229,10 @@ namespace SSHConf
         {
             Entry e = new Entry();
             e.name = "New entry";
-            (model as Gtk.ListStore).insert_with_values(null,  
+            (model as EntryModel).add_entry(e);/*insert_with_values(null,  
                     0,
                     0, (owned)e,
-                    -1);
+                    -1);*/
         }
 
         /**
@@ -259,6 +248,7 @@ namespace SSHConf
                 write_file();
             }
             Gtk.main_quit();
+            this.destroy();
         }
 
         static int main(string[] argv)

@@ -20,10 +20,9 @@
  */
 using Gtk;
 using Gee;
+namespace SSHConf
+{
 
- /**
-     * Entry 
-     */
     public class Entry : GLib.Object 
     {
         /* Grepped from the man page */
@@ -175,3 +174,4 @@ using Gee;
             stdout.printf("~Destroy entry\n");
         }
     }
+}
