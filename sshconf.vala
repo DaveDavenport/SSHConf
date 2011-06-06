@@ -1,180 +1,52 @@
-/**
- * @todo: Fix GApplication uasge
+/* sshconf.vala
+ *
+ * Copyright (C) 2011 Qball Cow <qball@gmpclient.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author:
+ * 	Qball Cow <qball@gmpclient.org>
  */
+
 using Gtk;
 using Gee;
+
 namespace SSHConf
 {
-    /**
-     * Entry 
-     */
-    public class Entry : GLib.Object 
-    {
-        /* Grepped from the man page */
-        /* zcat /Storage/qball/Debian/usr/share/man/man5/ssh_config.5.gz | grep ".It Cm" | awk  '{print "\""$3"\","}' 
-         * Remove host and hostname
-         */
-        public static string[] KEYS = {
-            "AddressFamily",
-            "BatchMode",
-            "BindAddress",
-            "ChallengeResponseAuthentication",
-            "CheckHostIP",
-            "Cipher",
-            "Ciphers",
-            "ClearAllForwardings",
-            "Compression",
-            "CompressionLevel",
-            "ConnectionAttempts",
-            "ConnectTimeout",
-            "ControlMaster",
-            "ControlPath",
-            "DynamicForward",
-            "EnableSSHKeysign",
-            "EscapeChar",
-            "ForwardAgent",
-            "ForwardX11",
-            "ForwardX11Trusted",
-            "GatewayPorts",
-            "GlobalKnownHostsFile",
-            "GSSAPIAuthentication",
-            "GSSAPIDelegateCredentials",
-            "GSSAPITrustDns",
-            "HashKnownHosts",
-            "HostbasedAuthentication",
-            "HostKeyAlgorithms",
-            "HostKeyAlias",
-            "IdentitiesOnly",
-            "IdentityFile",
-            "KbdInteractiveDevices",
-            "LocalCommand",
-            "LocalForward",
-            "LogLevel",
-            "MACs",
-            "NoHostAuthenticationForLocalhost",
-            "NumberOfPasswordPrompts",
-            "PasswordAuthentication",
-            "PermitLocalCommand",
-            "Port",
-            "PreferredAuthentications",
-            "Protocol",
-            "ProxyCommand",
-            "PubkeyAuthentication",
-            "RekeyLimit",
-            "RemoteForward",
-            "RhostsRSAAuthentication",
-            "RSAAuthentication",
-            "SendEnv",
-            "ServerAliveCountMax",
-            "ServerAliveInterval",
-            "SetupTimeOut",
-            "SmartcardDevice",
-            "StrictHostKeyChecking",
-            "TCPKeepAlive",
-            "Tunnel",
-            "TunnelDevice",
-            "UsePrivilegedPort",
-            "User",
-            "UserKnownHostsFile",
-            "VerifyHostKeyDNS",
-            "XAuthLocation",
-            null
-        };
-        /* Name of the entry */
-        private string _name = "";
-        public string name {
-                get {
-                    return _name;
-                } 
-                set {
-                    _name = value;
-                }
-        }
-
-        /* Hostname */
-        private string _hostname = ""; 
-        public string hostname {
-                get {
-                    return _hostname; 
-                }
-                set {
-                    _hostname = value;
-                }               
-        }
-
-        public signal void changed();
-        public MultiMap<string, string> settings =  new HashMultiMap<string, string>();
-
-        public void add_pair(string key, string value)
-        {
-            stdout.printf("adding: '%s': '%s'\n", key, value);
-            settings.set(key.dup(),value.dup());
-            changed();
-        }
-        public void update_pair(string key, string old_value, string value)
-        {
-            settings.remove(key, old_value);
-            settings.set(key, value);
-            changed();
-        }
-        public void remove_pair(string key, string value)
-        {
-            settings.remove(key, value);
-            changed();
-        }
-
-        public void write_entry(GLib.DataOutputStream da) throws GLib.IOError
-        {
-            try {
-                da.put_string("Host ");
-                da.put_string(name);
-                da.put_string("\n");
-                if(hostname != null && hostname.length > 0)
-                {
-                    da.put_string("\tHostname ");
-                    da.put_string(hostname);
-                    da.put_string("\n");
-                }
-
-                foreach(var miter in settings.get_all_keys())
-                {
-                    foreach(var value in settings.get(miter))
-                    {
-                        da.put_string("\t");
-                        da.put_string(miter);
-                        da.put_string(" ");
-                        da.put_string(value);
-                        da.put_string("\n");
-                    }
-                }
-
-            }catch (GLib.IOError er) {
-                throw er;
-            }
-        }
-
-
-        ~Entry()
-        {
-            stdout.printf("~Destroy entry\n");
-        }
-    }
-
     class Overview : Gtk.Dialog
     {
-        public Gtk.Widget apply_button;
-        public Gtk.Widget add_rule_button;
-        public Gtk.Widget remove_rule_button;
-        public Gtk.TreeView tree;
-        public Gtk.TreeModel model;
-
-
+        private string source_filename = null;
+        
+        private Gtk.Widget apply_button;
+        private Gtk.Widget add_rule_button;
+        private Gtk.Widget remove_rule_button;
+        private Gtk.TreeView tree;
+        private Gtk.TreeModel model;
 
         ~Overview()
         {
             stdout.printf("~Overview\n");
+            Gtk.TreeIter iter;
+            if(model.get_iter_first(out iter))
+            {
+                do{
+                    Entry? en = null;
+                    model.get(iter, 0, out en); 
+                    en = null;
+                }while(model.iter_next(ref iter));
+            }
             (model as Gtk.ListStore).clear();
-
         }
 
 
@@ -196,6 +68,8 @@ namespace SSHConf
          */
         public async void load_file(string filename)
         {
+            this.source_filename = filename;
+            
             File file = GLib.File.new_for_path(filename);
 
             try {
@@ -244,10 +118,10 @@ namespace SSHConf
         }
 
 
-        public void write_file(string filename)
+        public void write_file()
         {
-            stdout.printf("write file: %s\n", filename);
-            File file = GLib.File.new_for_path(filename);
+            stdout.printf("write file: %s\n", this.source_filename);
+            File file = GLib.File.new_for_path(this.source_filename);
             try {
                 stdout.printf("write file 1\n");
                 var stream = file.replace(null, true,FileCreateFlags.REPLACE_DESTINATION );
@@ -368,15 +242,21 @@ namespace SSHConf
             e.name = "New entry";
             (model as Gtk.ListStore).insert_with_values(null,  
                     0,
-                    0, e,
+                    0, (owned)e,
                     -1);
         }
 
+        /**
+         * Quit when dialog get closed either via escape, cancel, window close
+         * or save. In case of save, write out file 
+         *
+         * @todo: when there are changes, ask confirmation before discarding
+         */
         public override void response(int response_id)
         {
 
             if(response_id == -1) { 
-                write_file("/home/qball/.ssh/config");
+                write_file();
             }
             Gtk.main_quit();
         }
@@ -386,20 +266,55 @@ namespace SSHConf
 
             Gtk.init(ref argv);
 
+            /* Create GtkApplication */
             var application = new Gtk.Application(
-                    "org.gmpclient.sshconf",GLib.ApplicationFlags.HANDLES_OPEN); 
+                    "org.gmpclient.sshconf",
+                    GLib.ApplicationFlags.HANDLES_OPEN); 
 
+            try{
+              application.register();
+            }catch (Error err) {
+              stderr.printf("Failed to register application: %s\n", err.message);
+              return 1;  
+            }
+
+            /* Only allow one instance off the application to be running */
+            if(application.is_remote)
+            {
+              application.activate();
+              application = null;
+              return 0;
+            }
+            
+            /* Create the gui */
             var a = new SSHConf.Overview();
-            a.load_file("/home/qball/.ssh/config");
             application.add_window(a);
+            
+            /* Create path to ~/.ssh/config */
+            var path = GLib.Path.build_filename(
+              GLib.Environment.get_home_dir(),
+              ".ssh",
+              "config");
+            
+            /* Load the file */
+            a.load_file(path);
+            
+            /* Response to the activate signal on GApplication by rasing 
+             * window */            
+            application.activate.connect(()=>{
+              (a as Gtk.Window).present();
+            });
 
+            /* Show all and run */
             a.show_all();
             Gtk.main();
+            
+            /* quit & cleanup */
             stdout.printf("quiting...\n");
-
-
             a = null;
-            return 1;
+            application = null;
+                        
+            return 0;
         }
     }
 }// end SSHConf
