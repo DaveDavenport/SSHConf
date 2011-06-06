@@ -52,7 +52,6 @@ namespace SSHConf
 
             try
             {
-                int i = 0;
                 string? res = null;
                 Entry? current = null;
                 var stream = yield file.open_readwrite_async();
