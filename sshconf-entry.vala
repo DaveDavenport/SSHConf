@@ -124,6 +124,20 @@ namespace SSHConf
                     }
                 }               
         }
+        
+        private bool _enabled =true;
+        public bool enabled {
+                get{
+                    return _enabled;
+                }
+                set {
+                    if(_enabled != value) {
+                        _enabled = value;
+                        changed();
+                    }
+                }
+            }
+        
 
         public signal void changed();
         public MultiMap<string, string> settings =  new HashMultiMap<string, string>();
@@ -149,11 +163,13 @@ namespace SSHConf
         public void write_entry(GLib.DataOutputStream da) throws GLib.IOError
         {
             try {
+                if(!_enabled) da.put_string("#");
                 da.put_string("Host ");
                 da.put_string(name);
                 da.put_string("\n");
                 if(hostname != null && hostname.length > 0)
                 {
+                    if(!_enabled) da.put_string("#");
                     da.put_string("\tHostname ");
                     da.put_string(hostname);
                     da.put_string("\n");
@@ -163,6 +179,7 @@ namespace SSHConf
                 {
                     foreach(var value in settings.get(miter))
                     {
+                        if(!_enabled) da.put_string("#");
                         da.put_string("\t");
                         da.put_string(miter);
                         da.put_string(" ");

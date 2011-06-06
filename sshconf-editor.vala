@@ -26,7 +26,7 @@ namespace SSHConf
     /**
      * Edit an Entry
      */
-    class Editor : Gtk.Dialog
+    class Editor : Gtk.VBox
     {
         private Entry entry;
         private Gtk.Entry name_entry = null;
@@ -34,8 +34,9 @@ namespace SSHConf
         private Gtk.ListStore model = null;
 
         private Gtk.TreeView tree = null;
-        private Gtk.Widget remove_rule_button = null;
-        private Gtk.Widget add_rule_button = null;
+        private Gtk.ToolItem remove_rule_button = null;
+        private Gtk.ToolItem add_rule_button = null;
+        private Gtk.Switch enable_switch = null;
 
         private Gtk.TreeModel keys_model = null;
 
@@ -61,9 +62,11 @@ namespace SSHConf
         }
         construct
         {
-            int i=0;
-            this.set_size_request(350,350);
 
+        
+        
+        
+            int i=0;
 
             keys_model = new Gtk.ListStore(1, typeof(string));
             for(i=0; Entry.KEYS[i] != null; i++)
@@ -71,14 +74,30 @@ namespace SSHConf
                 (keys_model as ListStore).insert_with_values(null,0, 0, Entry.KEYS[i]);
             }
 
-
-
-
-            var vbox = new Gtk.VBox(false, 6);
             var SizeGroup = new Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL);
+            /**
+             * Enable button
+             */
+             var hbox = new Gtk.HBox(false,6);
+             enable_switch = new Gtk.Switch();
+             var ali = new Gtk.Alignment(0.0f, 0.5f, 0.0f, 0.0f);
+             ali.add(enable_switch);
+             var label = new Label("Enable");
+             SizeGroup.add_widget(label);
+             label.set_alignment(1f, 0.5f);
+             hbox.pack_start(label, false, false, 0);
+             hbox.pack_start(ali, true, true, 0);
+             this.pack_start(hbox, false, false, 6);
+
+            enable_switch.notify["active"].connect((source) => {
+                stdout.printf("Switch activate toggle\n");
+                entry.enabled = enable_switch.get_active();            
+            });
+
+
             /* Name entry */
-            var hbox = new Gtk.HBox(false,6);
-            var label = new Label("Name");
+            hbox = new Gtk.HBox(false,6);
+            label = new Label("Name");
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
             name_entry = new Gtk.Entry();
@@ -89,7 +108,9 @@ namespace SSHConf
             });
             hbox.pack_start(label, false, false, 0);
             hbox.pack_start(name_entry, true, true, 0);
-            vbox.pack_start(hbox, false, false, 0);
+            this.pack_start(hbox, false, false, 6);
+
+
             /* Hostname entry */
             hbox = new Gtk.HBox(false,6);
             label = new Label("Hostname");
@@ -103,11 +124,7 @@ namespace SSHConf
             });
             hbox.pack_start(label, false, false, 0);
             hbox.pack_start(hostname_entry, true, true, 0);
-            vbox.pack_start(hbox, false, false, 0);
-
-            (this.get_content_area() as Gtk.Box).pack_start(vbox, true, true, 0);
-            vbox.border_width = 8;
-
+            this.pack_start(hbox, false, false,6);
 
             /* tree */
             model = new Gtk.ListStore(2, typeof(string), typeof(string));
@@ -118,7 +135,7 @@ namespace SSHConf
             tree.set_model(model);
             tree.rules_hint = true;
             sw.add(tree);
-            vbox.pack_start(sw, true, true, 0);
+            this.pack_start(sw, true, true, 0);
 
             var renderer = new Gtk.CellRendererCombo();
             tree.insert_column_with_attributes(0,"Key", renderer, "text",0,null);
@@ -154,22 +171,33 @@ namespace SSHConf
             });
 
             /* button box */
-            hbox = new Gtk.HBox(false, 6);
+            var bbox = new Gtk.Toolbar();
+            /**
+             * Setup the styles for the button box
+             */
+            var context = bbox.get_style_context();
+            context.set_junction_sides(Gtk.JunctionSides.TOP);
+            context.add_class(Gtk.STYLE_CLASS_INLINE_TOOLBAR);
+            context = sw.get_style_context();
+            context.set_junction_sides(Gtk.JunctionSides.BOTTOM);
+
+            //bbox.set_layout(Gtk.ButtonBoxStyle.END);
             /* add */
-            add_rule_button = new Gtk.Button.from_stock("gtk-add");
-            (add_rule_button as Gtk.Button).clicked.connect((source) => {
+            add_rule_button = new Gtk.ToolButton.from_stock("gtk-add");
+            (add_rule_button as Gtk.ToolButton).clicked.connect((source) => {
                     Gtk.TreeIter iter;
                     (model as ListStore).insert_with_values(
                         out iter, -1,
                         0, "<key>",
                         1, "<value>");
                     });
-            hbox.pack_end(add_rule_button, false, false, 0);
+
+            bbox.insert(add_rule_button, 0);
             /* remove */
-            remove_rule_button = new Gtk.Button.from_stock("gtk-remove");
+            remove_rule_button = new Gtk.ToolButton.from_stock("gtk-remove");
             remove_rule_button.sensitive = false;
 
-            (remove_rule_button as Gtk.Button).clicked.connect((source) => {
+            (remove_rule_button as Gtk.ToolButton).clicked.connect((source) => {
                 Gtk.TreeIter iter;
                 if(tree.get_selection().get_selected(null, out iter))
                 {
@@ -178,8 +206,9 @@ namespace SSHConf
                     entry.remove_pair(key, value);
                 }
             });
-            hbox.pack_end(remove_rule_button, false, false, 0);
-            vbox.pack_start(hbox, false, false, 0);
+
+            bbox.insert(remove_rule_button, 1);
+            this.pack_start(bbox, false, false, 0);
 
             /* selection */
             tree.get_selection().changed.connect((source) => {
@@ -192,14 +221,6 @@ namespace SSHConf
                 }
 
             });
-
-            /* Close button */
-            this.add_button("gtk-close", 0);
-        }
-        
-        public override void response (int id)
-        {
-            this.destroy();
         }
 
         ~Editor()
@@ -208,11 +229,11 @@ namespace SSHConf
         }
         public Editor (Gtk.Window parent, Entry entry)
         {
-
-            this.set_transient_for(parent);
             this.entry = entry;
 
 
+            enable_switch.set_active(this.entry.enabled);
+            
             name_entry.set_text(entry.name);
             this.entry.notify["name"].connect(() =>{
                     name_entry.set_text(this.entry.name);
@@ -224,11 +245,13 @@ namespace SSHConf
             });
 
             this.entry.changed.connect(() => {
+                if(this.entry.enabled != enable_switch.get_active()) {
+                    enable_switch.set_active(this.entry.enabled);
+                }
                 fill_settings_list();
             });
             fill_settings_list();
             this.show_all();
         }
-
     }
 }
