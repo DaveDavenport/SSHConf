@@ -101,9 +101,15 @@ namespace SSHConf
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
             name_entry = new Gtk.Entry();
+            name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");            
             name_entry.changed.connect((source) => {
                 if((source as Gtk.Entry).get_text() != entry.name) {
                     entry.name = (source as Gtk.Entry).get_text();
+                }
+                if(entry.validate_pattern(entry.name)) {
+                    name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");
+                }else{
+                    name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
                 }
             });
             hbox.pack_start(label, false, false, 0);
@@ -117,9 +123,15 @@ namespace SSHConf
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
             hostname_entry = new Gtk.Entry();
+            hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");            
             hostname_entry.changed.connect((source) => {
                 if((source as Gtk.Entry).get_text() != entry.hostname) {
                     entry.hostname = (source as Gtk.Entry).get_text();
+                }
+                if(entry.validate_hostname(entry.hostname)) {
+                    hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");
+                }else{
+                    hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
                 }
             });
             hbox.pack_start(label, false, false, 0);
@@ -138,11 +150,12 @@ namespace SSHConf
             this.pack_start(sw, true, true, 0);
 
             var renderer = new Gtk.CellRendererCombo();
+	        renderer.has_entry = false;
             tree.insert_column_with_attributes(0,"Key", renderer, "text",0,null);
             renderer.set("model", keys_model);
             renderer.set("text-column", 0);
             renderer.set("editable", true);
-            renderer.set("has-entry", false);
+
             renderer.edited.connect((source, path, new_key)=> {
                 Gtk.TreeIter iter;
                 if(model.get_iter_from_string(out iter, path))

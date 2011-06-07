@@ -97,8 +97,18 @@ namespace SSHConf
             "XAuthLocation",
             null
         };
+        
         /* Name of the entry */
         private string _name = "";
+        
+        public bool validate_pattern(string val)
+        {
+            return Regex.match_simple("^[a-zA-Z0-9\\.\\?\\*]+$", val);
+        }
+        public bool validate_hostname(string val)
+        {
+            return Regex.match_simple("^[a-zA-Z0-9\\.]*$", val);        
+        }
         public string name
         {
             get
@@ -155,8 +165,19 @@ namespace SSHConf
 
         public void add_pair(string key, string value)
         {
+            var comp = key.down();
             stdout.printf("adding: '%s': '%s'\n", key, value);
-            settings.set(key.dup(),value.dup());
+            // Lookup the key in the KEYS list, and use that value,
+            // with right capitals.
+            /// @todo make a less naive implementation?
+            foreach(string k in KEYS)
+            {
+                if(comp == k.down()) {
+                    comp = k;
+                    break;
+                }
+            }
+            settings.set(comp.dup(),value.dup());
             changed();
         }
         public void update_pair(string key, string old_value, string value)

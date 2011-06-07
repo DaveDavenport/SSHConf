@@ -1,4 +1,4 @@
-    /* sshconf.vala
+/* sshconf.vala
  *
  * Copyright (C) 2011 Qball Cow <qball@gmpclient.org>
  *
@@ -18,6 +18,15 @@
  * Author:
  * 	Qball Cow <qball@gmpclient.org>
  */
+
+/**
+ * Todo list:
+ * 
+ * @todo: Make validator for entry. (separate widget that shows this)
+ * @todo: ComboBox entry is very long, needs better interface.
+ */
+
+
 
 using Gtk;
 using Gee;
