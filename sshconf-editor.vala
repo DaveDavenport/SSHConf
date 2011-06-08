@@ -39,6 +39,11 @@ namespace SSHConf
         private Gtk.Switch enable_switch = null;
 
         private Gtk.TreeModel keys_model = null;
+        private Gtk.Label title_label = null;
+
+        private Gtk.HBox enable_hbox = null;
+        private Gtk.HBox name_hbox = null;
+        private Gtk.HBox hostname_hbox = null;
 
 
         private void fill_settings_list()
@@ -64,6 +69,11 @@ namespace SSHConf
         {
 
         
+            title_label = new Label("");
+            title_label.set_markup("<span size='xx-large' weight='bold'>Entry settings</span>");
+            this.pack_start(title_label, false, false, 0);
+            title_label.set_alignment(0f, 0.5f);
+            title_label.set_padding(6,6);
         
         
             int i=0;
@@ -78,16 +88,16 @@ namespace SSHConf
             /**
              * Enable button
              */
-             var hbox = new Gtk.HBox(false,6);
+             enable_hbox = new Gtk.HBox(false,6);
              enable_switch = new Gtk.Switch();
              var ali = new Gtk.Alignment(0.0f, 0.5f, 0.0f, 0.0f);
              ali.add(enable_switch);
              var label = new Label("Enable");
              SizeGroup.add_widget(label);
              label.set_alignment(1f, 0.5f);
-             hbox.pack_start(label, false, false, 0);
-             hbox.pack_start(ali, true, true, 0);
-             this.pack_start(hbox, false, false, 6);
+             enable_hbox.pack_start(label, false, false, 0);
+             enable_hbox.pack_start(ali, true, true, 0);
+             this.pack_start(enable_hbox, false, false, 6);
 
             enable_switch.notify["active"].connect((source) => {
                 stdout.printf("Switch activate toggle\n");
@@ -96,7 +106,7 @@ namespace SSHConf
 
 
             /* Name entry */
-            hbox = new Gtk.HBox(false,6);
+            name_hbox = new Gtk.HBox(false,6);
             label = new Label("Name");
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
@@ -112,13 +122,13 @@ namespace SSHConf
                     name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
                 }
             });
-            hbox.pack_start(label, false, false, 0);
-            hbox.pack_start(name_entry, true, true, 0);
-            this.pack_start(hbox, false, false, 6);
+            name_hbox.pack_start(label, false, false, 0);
+            name_hbox.pack_start(name_entry, true, true, 0);
+            this.pack_start(name_hbox, false, false, 6);
 
 
             /* Hostname entry */
-            hbox = new Gtk.HBox(false,6);
+            hostname_hbox = new Gtk.HBox(false,6);
             label = new Label("Hostname");
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
@@ -134,9 +144,9 @@ namespace SSHConf
                     hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
                 }
             });
-            hbox.pack_start(label, false, false, 0);
-            hbox.pack_start(hostname_entry, true, true, 0);
-            this.pack_start(hbox, false, false,6);
+            hostname_hbox.pack_start(label, false, false, 0);
+            hostname_hbox.pack_start(hostname_entry, true, true, 0);
+            this.pack_start(hostname_hbox, false, false,6);
 
             /* tree */
             model = new Gtk.ListStore(2, typeof(string), typeof(string));
@@ -244,7 +254,6 @@ namespace SSHConf
         {
             this.entry = entry;
 
-
             enable_switch.set_active(this.entry.enabled);
             
             name_entry.set_text(entry.name);
@@ -265,6 +274,18 @@ namespace SSHConf
             });
             fill_settings_list();
             this.show_all();
+
+            /**
+             * If default settings modify editor a bit 
+             */
+            if(entry is DefaultEntry) {
+                title_label.set_markup("<span size='xx-large' weight='bold'>Default settings</span>");
+                stdout.printf("Default entry\n");
+                
+                enable_hbox.hide();
+                name_hbox.hide();
+                hostname_hbox.hide();
+            }
         }
     }
 }

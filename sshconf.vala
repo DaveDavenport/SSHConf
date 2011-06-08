@@ -45,6 +45,8 @@ namespace SSHConf
         private Gtk.Widget editor = null;
         private Gtk.HBox main_box = null;
 
+        private Entry default_settings = new DefaultEntry();
+
         ~Overview()
         {
             stdout.printf("~Overview\n");
@@ -62,7 +64,7 @@ namespace SSHConf
             try
             {
                 string? res = null;
-                Entry? current = null;
+                Entry? current = default_settings;
                 var stream = yield file.open_readwrite_async();
                 var bdstream = new DataInputStream(stream.input_stream);
                 do
@@ -121,6 +123,8 @@ namespace SSHConf
 
                 Gtk.TreeIter iter;
                 stdout.printf("write file 2\n");
+                default_settings.write_entry(da);
+                da.put_string("\n");
                 if(model.get_iter_first(out iter))
                 {
                     do
@@ -159,15 +163,7 @@ namespace SSHConf
             box.set_size_request(250, -1);
             main_box.pack_start(box, false, false, 0);
 
-            /* Label */
-            var label = new Gtk.Label("");
-            label.set_markup("<span size='xx-large'>SSH Config</span>");
-            label.set_alignment(0.0f, 0.5f);
-            label.set_padding(6,6);
-            (this.get_content_area() as Gtk.Box).pack_start(label, false, false, 0);
-
             /* Model */
-                                 //Gtk.ListStore(1,typeof(GLib.Object));
             model = new EntryModel();
 
             /* Treeview */
@@ -186,27 +182,6 @@ namespace SSHConf
 
             column.pack_start(renderer, true);
             column.set_attributes(renderer, "text", EntryModel.Columns.NAME);
-            /*
-            renderer = new Gtk.CellRendererText();
-            renderer.set("foreground", "grey");
-            renderer.set("xalign", 1.0);
-
-            column.pack_start(renderer, false);
-            column.set_attributes(renderer, "text", EntryModel.Columns.HOSTNAME);
-            */
-            tree.row_activated.connect((source, path, column) =>
-            {
-                Gtk.TreeIter iter;
-                    if(source.get_model().get_iter(out iter, path))
-                {
-                    Entry? en = null;
-                        source.get_model().get(iter, 0, out en);
-                        if(en != null)
-                    {
-                        //                        new Editor(this, en);
-                    }
-                }
-            });
 
             /* button box */
             var hbox = new Gtk.Toolbar();
@@ -262,12 +237,14 @@ namespace SSHConf
                 else
                 {
                     remove_rule_button.sensitive = false;
-                        set_editor(null);
+                    set_editor(default_settings);
                 }
 
             });
 
             box.pack_start(hbox, false, false, 0);
+            this.show_all();
+            set_editor(default_settings);
         }
 
         private void set_editor(Entry? en)
@@ -283,7 +260,7 @@ namespace SSHConf
 
             editor = new Editor(this,en);
             main_box.pack_start(editor, true, true,0);
-            main_box.show_all();
+            main_box.show();
         }
 
         private void add_entry()
@@ -361,7 +338,7 @@ namespace SSHConf
             });
 
             /* Show all and run */
-            a.show_all();
+            a.show();
             Gtk.main();
 
             /* quit & cleanup */

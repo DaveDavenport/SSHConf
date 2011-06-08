@@ -22,7 +22,30 @@ using Gtk;
 using Gee;
 namespace SSHConf
 {
+    public class DefaultEntry : Entry
+    {
+        public override void write_entry(GLib.DataOutputStream da) throws GLib.IOError
+        {
+            try
+            {
+                foreach(var miter in settings.get_all_keys())
+                {
+                    foreach(var value in settings.get(miter))
+                    {
+                        da.put_string(miter);
+                        da.put_string(" ");
+                        da.put_string(value);
+                        da.put_string("\n");
+                    }
+                }
+            }
+            catch (GLib.IOError er)
+            {
+                throw er;
+            }
+        }
 
+    }
     public class Entry : GLib.Object
     {
         /* Grepped from the man page */
@@ -192,7 +215,7 @@ namespace SSHConf
             changed();
         }
 
-        public void write_entry(GLib.DataOutputStream da) throws GLib.IOError
+        public virtual void write_entry(GLib.DataOutputStream da) throws GLib.IOError
         {
             try
             {
