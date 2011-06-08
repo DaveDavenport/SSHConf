@@ -21,18 +21,12 @@ def configure(conf):
     conf.check_cfg(package='gee-1.0', uselib_store='GEE',
             atleast_version='0.6.0', mandatory=True, args='--cflags --libs')
 
-    conf.define('PACKAGE', APPNAME)
-    conf.define('PACKAGE_NAME', APPNAME)
-    conf.define('PACKAGE_STRING', APPNAME + '-' + VERSION)
-    conf.define('PACKAGE_VERSION', APPNAME + '-' + VERSION)
-
-    conf.define('VERSION', VERSION)
-    conf.define('VERSION_MAJOR_MINOR', VERSION_MAJOR_MINOR)
 
 def build(bld):
 	prog = bld(features='cc cprogram')
 	# name of the resulting program
 	prog.target = APPNAME
+	# Sources to use
 	prog.source = ['sshconf.vala',
 				   'sshconf-entry.vala',
 				   'sshconf-entry-model.vala',
@@ -41,3 +35,4 @@ def build(bld):
 	prog.uselib = ['GTK+', 'GLIB', 'GEE']
 	# Vala packages to use
 	prog.packages = ['gtk+-3.0', 'gee-1.0']
+
