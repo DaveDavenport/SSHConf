@@ -97,7 +97,7 @@ namespace SSHConf
              label.set_alignment(1f, 0.5f);
              enable_hbox.pack_start(label, false, false, 0);
              enable_hbox.pack_start(ali, true, true, 0);
-             this.pack_start(enable_hbox, false, false, 6);
+             this.pack_start(enable_hbox, false, false, 3);
 
             enable_switch.notify["active"].connect((source) => {
                 stdout.printf("Switch activate toggle\n");
@@ -124,7 +124,7 @@ namespace SSHConf
             });
             name_hbox.pack_start(label, false, false, 0);
             name_hbox.pack_start(name_entry, true, true, 0);
-            this.pack_start(name_hbox, false, false, 6);
+            this.pack_start(name_hbox, false, false, 3);
 
 
             /* Hostname entry */
@@ -146,7 +146,7 @@ namespace SSHConf
             });
             hostname_hbox.pack_start(label, false, false, 0);
             hostname_hbox.pack_start(hostname_entry, true, true, 0);
-            this.pack_start(hostname_hbox, false, false,6);
+            this.pack_start(hostname_hbox, false, false,3);
 
             /* tree */
             model = new Gtk.ListStore(2, typeof(string), typeof(string));
