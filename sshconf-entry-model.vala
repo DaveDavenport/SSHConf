@@ -22,7 +22,7 @@ using Gtk;
 
 namespace SSHConf
 {
-    class EntryModel : GLib.Object, Gtk.TreeModel
+    class EntryModel : GLib.Object, Gtk.TreeModel, Gtk.TreeSortable
     {
         public enum Columns
         {
@@ -184,6 +184,7 @@ namespace SSHConf
             if(this.get_iter(out riter, rpath))
             {
                 row_changed(rpath, riter);
+                sort_columns();
             }
         }
         public Gtk.TreePath add_entry (Entry entry)
@@ -200,8 +201,9 @@ namespace SSHConf
             {
                 GLib.error("Failed to get iter for new node");
             }
-
             entry.changed.connect(entry_changed);
+            sort_columns();
+            new Gtk.TreePath.from_indices(entries.index(entry),-1);
             return path;
         }
 
@@ -220,6 +222,63 @@ namespace SSHConf
                 /* signal row deleted */
                 row_deleted(path);
             }
+        }
+        /** Sortable interface
+         */
+        private static int sort_entries_by_name(Entry? a, Entry? b)
+        {
+            if(a == null && b == null) return 0;
+            else if(a == null) return -1;
+            else if(b == null) return 1;
+            return a.name.collate(b.name);
+        }
+        private void sort_columns()
+        {
+            List<Entry> list_copy = null;//entries.copy();
+            foreach(Entry a in entries) {
+                list_copy.append(a);
+            }
+            list_copy.sort(sort_entries_by_name);
+        
+            int[] new_order = new int[list_copy.length()];
+            int i  =0;
+            foreach(Entry a in list_copy)
+            {
+                new_order[i] = entries.index(a);
+                i++;
+            }
+            entries = (owned)list_copy;
+            this.stamp++;
+            GLib.debug("reordered rows");
+            var path = new Gtk.TreePath();
+            this.rows_reordered(path,null, new_order);
+        }
+        private Columns sort_column = Columns.NAME;
+        private Gtk.SortType sort_order = Gtk.SortType.ASCENDING;
+        public bool has_default_sort_func()
+        {
+            return true;
+        }
+        public bool get_sort_column_id (out int column_id, out Gtk.SortType column_sort_order)
+        {
+            if(sort_column != Columns.NAME) return false;
+            column_id = sort_column;
+            column_sort_order = sort_order;
+            return true;
+        }
+        public void set_sort_column_id(int column_id, Gtk.SortType type)
+        {
+            /* Do nothing, we can only sort on name */
+        }
+        public void set_sort_func(int column_id, owned Gtk.TreeIterCompareFunc func)
+        {
+            /* Setting sort func is not supported */
+            GLib.error("Setting sort func is not supported");
+        }
+        public void set_default_sort_func(owned Gtk.TreeIterCompareFunc func)
+        {
+            /* Do nothing, we can only do our sort */
+            GLib.error("Default sort is not supported");
         }
     }
 }
