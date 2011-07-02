@@ -203,7 +203,7 @@ namespace SSHConf
             }
             entry.changed.connect(entry_changed);
             sort_columns();
-            new Gtk.TreePath.from_indices(entries.index(entry),-1);
+            path = new Gtk.TreePath.from_indices(entries.index(entry),-1);
             return path;
         }
 
