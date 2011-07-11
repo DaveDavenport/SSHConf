@@ -160,11 +160,14 @@ namespace SSHConf
             this.pack_start(sw, true, true, 0);
 
             var renderer = new Gtk.CellRendererCombo();
-	        renderer.has_entry = false;
+	        renderer.has_entry = true;
             tree.insert_column_with_attributes(0,"Key", renderer, "text",0,null);
             renderer.set("model", keys_model);
             renderer.set("text-column", 0);
             renderer.set("editable", true);
+            tree.get_column(0).set_min_width(150);
+            tree.get_column(0).set_sizing(Gtk.TreeViewColumnSizing.FIXED);
+
 
             renderer.edited.connect((source, path, new_key)=> {
                 Gtk.TreeIter iter;
