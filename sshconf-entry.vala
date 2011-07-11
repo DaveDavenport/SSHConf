@@ -132,6 +132,7 @@ namespace SSHConf
         {
             return Regex.match_simple("^[a-zA-Z0-9\\.]*$", val);        
         }
+
         public string name
         {
             get
@@ -181,6 +182,16 @@ namespace SSHConf
                     changed();
                 }
             }
+        }
+
+
+        public Entry.copy(Entry en)
+        {
+            name = en.name;
+            hostname = en.hostname;
+            enabled = en.enabled;
+            settings = en.settings;
+
         }
 
         public signal void changed();

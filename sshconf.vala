@@ -40,6 +40,7 @@ namespace SSHConf
         private Gtk.Widget apply_button;
         private Gtk.ToolButton add_rule_button;
         private Gtk.ToolButton remove_rule_button;
+        private Gtk.ToolButton copy_rule_button;
         private Gtk.TreeView tree;
         private Gtk.TreeModel model;
         private Gtk.Widget editor = null;
@@ -190,11 +191,17 @@ namespace SSHConf
             var image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
             add_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-add");
 
-
-
             (add_rule_button as Gtk.ToolButton).clicked.connect(add_entry);
-                                 //, false, false, 0);
             hbox.insert(add_rule_button,0);
+
+
+            icon = new GLib.ThemedIcon.with_default_fallbacks( "gtk-copy");
+            image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
+            copy_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-add");
+            (copy_rule_button as Gtk.ToolButton).clicked.connect(copy_entry);
+            hbox.insert(copy_rule_button,-1);
+            copy_rule_button.sensitive = false;
+
             /* remove */
             icon = new GLib.ThemedIcon.with_default_fallbacks( "list-remove-symbolic");
             image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
@@ -230,6 +237,7 @@ namespace SSHConf
                     if(tree.get_selection().get_selected(null, out iter))
                 {
                     remove_rule_button.sensitive = true;
+                    copy_rule_button.sensitive = true;
                         Entry? en = null;
                         model.get(iter, EntryModel.Columns.ENTRY, out en);
                         set_editor(en);
@@ -237,6 +245,7 @@ namespace SSHConf
                 else
                 {
                     remove_rule_button.sensitive = false;
+                    copy_rule_button.sensitive = false;
                     set_editor(default_settings);
                 }
 
@@ -263,6 +272,20 @@ namespace SSHConf
             main_box.show();
         }
 
+        private void copy_entry()
+        {
+            Gtk.TreeIter iter;
+            if(tree.get_selection().get_selected(null, out iter))
+            {
+                Entry? en = null;
+                model.get(iter, 0, out en);
+
+                Entry? entry_copy = new Entry.copy(en);
+                entry_copy.name = en.name + ".copy";
+                Gtk.TreePath path = (model as EntryModel).add_entry(entry_copy);
+                tree.get_selection().select_path(path);
+            }
+        }
         private void add_entry()
         {
             Entry e = new Entry();
