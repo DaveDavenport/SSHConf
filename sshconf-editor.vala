@@ -210,6 +210,7 @@ namespace SSHConf
             //bbox.set_layout(Gtk.ButtonBoxStyle.END);
             /* add */
             add_rule_button = new Gtk.ToolButton.from_stock("gtk-add");
+            add_rule_button.tooltip_text = "Add parameter";
             (add_rule_button as Gtk.ToolButton).clicked.connect((source) => {
                     Gtk.TreeIter iter;
                     (model as ListStore).insert_with_values(
@@ -221,6 +222,7 @@ namespace SSHConf
             bbox.insert(add_rule_button, 0);
             /* remove */
             remove_rule_button = new Gtk.ToolButton.from_stock("gtk-remove");
+            remove_rule_button.tooltip_text = "Remove parameter";
             remove_rule_button.sensitive = false;
 
             (remove_rule_button as Gtk.ToolButton).clicked.connect((source) => {

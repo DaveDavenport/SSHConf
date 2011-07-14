@@ -190,6 +190,7 @@ namespace SSHConf
             var icon = new GLib.ThemedIcon.with_default_fallbacks( "list-add-symbolic");
             var image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
             add_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-add");
+            add_rule_button.tooltip_text = "Add entry";
 
             (add_rule_button as Gtk.ToolButton).clicked.connect(add_entry);
             hbox.insert(add_rule_button,0);
@@ -198,6 +199,7 @@ namespace SSHConf
             icon = new GLib.ThemedIcon.with_default_fallbacks( "gtk-copy");
             image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
             copy_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-add");
+            copy_rule_button.tooltip_text = "Copy entry";
             (copy_rule_button as Gtk.ToolButton).clicked.connect(copy_entry);
             hbox.insert(copy_rule_button,-1);
             copy_rule_button.sensitive = false;
@@ -207,6 +209,7 @@ namespace SSHConf
             image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);
             remove_rule_button = new Gtk.ToolButton(image, null);//.from_stock("gtk-remove");
             remove_rule_button.sensitive = false;
+            remove_rule_button.tooltip_text = "Remove entry";
 
             hbox.insert(remove_rule_button,1);
 
