@@ -251,7 +251,7 @@ namespace SSHConf
             this.stamp++;
             GLib.debug("reordered rows");
             var path = new Gtk.TreePath();
-            this.rows_reordered(path,null, new_order);
+            Glue.rows_reordered(this,path,null, new_order);
         }
         private Columns sort_column = Columns.NAME;
         private Gtk.SortType sort_order = Gtk.SortType.ASCENDING;

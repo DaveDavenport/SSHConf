@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-VERSION = "0.0.1"
-VERSION_MAJOR_MINOR =  ".".join(VERSION.split(".")[0:2])
+VERSION = "11.7"
+VERSION_MAJOR_MINOR =  ".".join(VERSION.split(".")[0:1])
 APPNAME = "sshconf"
 
 srcdir = '.'
@@ -35,5 +35,6 @@ def build(bld):
 	# libraries to link against
 	prog.uselib = ['GTK+', 'GLIB', 'GEE']
 	# Vala packages to use
-	prog.packages = ['gtk+-3.0', 'gee-1.0']
+	prog.vapi_dirs = ['./']
+	prog.packages = ['gtk+-3.0', 'gee-1.0', 'glue']
 
