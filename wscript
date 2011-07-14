@@ -7,6 +7,7 @@ APPNAME = "sshconf"
 srcdir = '.'
 blddir = 'build'
 
+
 def set_options(opt):
     opt.tool_options('compiler_cc')
     opt.tool_options('gnu_dirs')
