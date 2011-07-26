@@ -32,12 +32,13 @@ namespace SSHConf
             {
                 foreach(var prop in settings)
                 {
+                    unowned string value = prop.get_as_string();
                     // do not write out values without a name
-                    if(prop.get_as_string() != null)
+                    if(value != null && value.length > 0)
                     {
                         da.put_string(prop.ep.name);
                         da.put_string(" ");
-                        da.put_string(prop.get_as_string());
+                        da.put_string(value);
                         da.put_string("\n");
                     }
                 }
@@ -55,7 +56,8 @@ namespace SSHConf
     {
         BOOL,
         INT,
-        STRING
+        STRING,
+        FILENAME
     }
     [Compact]
         [Immutable]
@@ -160,7 +162,7 @@ namespace SSHConf
         },
         {
             "IdentityFile",
-            PropertyType.STRING,    
+            PropertyType.FILENAME,    
             false,  null,
             true
         },
@@ -230,13 +232,38 @@ namespace SSHConf
              PropertyType.BOOL,
              true, VALUE_YES,
              false
+        },
+        {
+            "GSSAPIAuthentication",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
+        },
+        {
+           "GSSAPIDelegateCredentials",
+           PropertyType.BOOL,
+           true, VALUE_NO,
+           false
+        },
+        {
+            "GSSAPITrustDns",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
+        },
+        {
+           "GatewayPorts",
+           PropertyType.BOOL,
+           true, VALUE_NO,
+           false
+        },
+        {
+           "GlobalKnownHostsFile",
+           PropertyType.FILENAME,
+           false, null,
+           false
         }
-             
- /*                   "GSSAPIAuthentication",
-                    "GSSAPIDelegateCredentials",
-                    "GSSAPITrustDns",
-                    "GatewayPorts",
-                    "GlobalKnownHostsFile",
+        /*
                     "HashKnownHosts",
                     "HostKeyAlgorithms",
                     "HostKeyAlias",
@@ -480,13 +507,14 @@ namespace SSHConf
 
                 foreach(var prop in settings)
                 {
-                    if(prop.get_as_string() != null)
+                    unowned string value = prop.get_as_string();
+                    if(value != null && value.length > 0 )
                     {
                         if(!_enabled) da.put_string("#");
                         da.put_string("\t");
                         da.put_string(prop.ep.name);
                         da.put_string(" ");
-                        da.put_string(prop.get_as_string());
+                        da.put_string(value);
                         da.put_string("\n");
                     }
                 }

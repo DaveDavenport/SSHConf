@@ -110,7 +110,9 @@ namespace SSHConf
             else if(prop.ep.type == PropertyType.STRING)
             {
                 field = new Gtk.Entry();
-                (field as Gtk.Entry).set_text(prop.get_as_string());
+                if(prop.get_as_string() != null) {
+                    (field as Gtk.Entry).set_text(prop.get_as_string());
+                }
                 (field as Gtk.Entry).set_width_chars(12);
 
                 /* listen to text entry changes */
@@ -134,6 +136,38 @@ namespace SSHConf
 
                 pack_end(field, true, true, 0);
 
+            } else if (prop.ep.type == PropertyType.FILENAME)
+            {
+                field = new Gtk.FileChooserButton("Select file", Gtk.FileChooserAction.OPEN);
+                if(prop.get_as_string() != null){
+                        try{
+                            GLib.File f = GLib.File.new_for_commandline_arg(prop.get_as_string());
+                            
+                            (field as Gtk.FileChooser).set_file(f);
+                            stdout.printf("..Testing..: %s\n",f.get_path());
+                        }catch(GLib.Error e) {
+                            stdout.printf("Error: %s\n", e.message);
+                            (field as Gtk.FileChooser).set_filename(prop.get_as_string());
+                        }
+
+                }
+                /* listen to property changes */
+                prop.notify["value"].connect((source,spec)=>
+                {
+                    if((field as Gtk.FileChooser).get_filename()
+                        != prop.get_as_string())
+                    {
+                        (field as Gtk.FileChooser).set_filename(prop.get_as_string());
+                    }
+                });
+                (field as Gtk.FileChooserButton).file_set.connect((source)=>
+                {
+                    string fn = source.get_filename();
+                    if(fn != prop.get_as_string()) {
+                        prop.set_as_string(fn);
+                    }
+                });
+                pack_end(field, true, true, 0);
             }
             else
             {
