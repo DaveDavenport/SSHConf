@@ -22,19 +22,22 @@ using Gtk;
 using Gee;
 namespace SSHConf
 {
+    public const string YES_VALUE = "yes";
+    public const string NO_VALUE = "no";
     public class DefaultEntry : Entry
     {
         public override void write_entry(GLib.DataOutputStream da) throws GLib.IOError
         {
             try
             {
-                foreach(var miter in settings.get_all_keys())
+                foreach(var prop in settings)
                 {
-                    foreach(var value in settings.get(miter))
+                    // do not write out values without a name
+                    if(prop.get_as_string() != null)
                     {
-                        da.put_string(miter);
+                        da.put_string(prop.ep.name);
                         da.put_string(" ");
-                        da.put_string(value);
+                        da.put_string(prop.get_as_string());
                         da.put_string("\n");
                     }
                 }
@@ -46,91 +49,185 @@ namespace SSHConf
         }
 
     }
+    /* Possible property values */
+        /* Type of property */
+    public enum PropertyType
+    {
+        BOOL,
+        INT,
+        STRING
+    }
+    [Compact]
+        [Immutable]
+        public struct EntryProperty
+    {
+        /* Name of the option */
+        public string       name;
+        /* Type */
+        public PropertyType type;
+        /* Has default */
+        public bool has_default;
+        /* Default value (string always works) */
+        public string default_value;
+        /* if we can have 1 or more entries of this */
+        public bool multi_instances;
+    }
+
+    public const EntryProperty[] KEYS =
+    {
+        // any inet4 ,inet6
+        {"AddressFamily",                   PropertyType.STRING,    false,  null    ,false},
+        {"BatchMode",                       PropertyType.BOOL,      true,   NO_VALUE    ,false},
+        {"BindAddress",                     PropertyType.STRING,    false,  null    ,false},
+        {"ChallengeResponseAuthentication", PropertyType.BOOL,      true,   YES_VALUE   ,false},
+        {"CheckHostIP",                     PropertyType.BOOL,      true,   YES_VALUE   ,false},
+        // des, 3des, blowfish
+        {"Cipher",                          PropertyType.STRING,    true,  "3des"   ,false},
+        // this is a list.
+        {"Ciphers",                         PropertyType.STRING,    false,  null    ,false},
+        {"ClearAllForwardings",             PropertyType.BOOL,      true,   NO_VALUE    ,false},
+        {"Compression",                     PropertyType.BOOL,      true,   NO_VALUE    ,false},
+        {"CompressionLevel",                PropertyType.INT,       false,  null    ,false},
+        {"ConnectTimeout",                  PropertyType.INT,       false,  null    ,false},
+        {"ForwardX11",                      PropertyType.BOOL,      true,   NO_VALUE    ,false},
+        {"User",                            PropertyType.STRING,    false,  null    ,false},
+        {"IdentityFile",                    PropertyType.STRING,    false,  null    ,true},
+        {"Port",                            PropertyType.INT,       false,  null    ,false},
+        {"ProxyCommand",                    PropertyType.STRING,    false,  null    ,false},
+        {"LocalForward",                    PropertyType.STRING,    false,  null    ,true}
+        /*            "ConnectionAttempts",
+                    "ControlMaster",
+                    "ControlPath",
+                    "DynamicForward",
+                    "EnableSSHKeysign",
+                    "EscapeChar",
+                    "ForwardAgent",*/
+        /*            "ForwardX11Trusted",
+                    "GSSAPIAuthentication",
+                    "GSSAPIDelegateCredentials",
+                    "GSSAPITrustDns",
+                    "GatewayPorts",
+                    "GlobalKnownHostsFile",
+                    "HashKnownHosts",
+                    "HostKeyAlgorithms",
+                    "HostKeyAlias",
+                    "HostbasedAuthentication",
+                    "IdentitiesOnly",
+                    "KbdInteractiveDevices",
+                    "LocalCommand",
+                    "LocalForward",
+                    "LogLevel",
+                    "MACs",
+                    "NoHostAuthenticationForLocalhost",
+                    "NumberOfPasswordPrompts",
+                    "PasswordAuthentication",
+                    "PermitLocalCommand",
+                    "Port",
+                    "PreferredAuthentications",
+                    "Protocol",
+
+                    "PubkeyAuthentication",
+                    "RSAAuthentication",
+                    "RekeyLimit",
+                    "RemoteForward",
+                    "RhostsRSAAuthentication",
+                    "SendEnv",
+                    "ServerAliveCountMax",
+                    "ServerAliveInterval",
+                    "SetupTimeOut",
+                    "SmartcardDevice",
+                    "StrictHostKeyChecking",
+                    "TCPKeepAlive",
+                    "Tunnel",
+                    "TunnelDevice",
+                    "UsePrivilegedPort",*/
+        /*            "UserKnownHostsFile",
+                    "VerifyHostKeyDNS",
+                    "XAuthLocation",*/
+    };
+
+    /* Class representing a property */
+    public class Property : GLib.Object
+    {
+        public unowned Entry entry;
+        /* The value */
+        private string value =null;
+
+        public EntryProperty? ep = null;
+
+        ~Property()
+        {
+            GLib.debug("~destroy property");
+        }
+        public Property(Entry en,string key)
+        {
+            this.entry = en;
+            for(uint i = 0;i<SSHConf.KEYS.length;i++)
+            {
+                if(KEYS[i].name.down() == key.down())
+                {
+                    ep = KEYS[i];
+                    break;
+                }
+            }
+            if(ep == null)
+            {
+                GLib.error("Unknown key: %s", key);
+            }
+            if(ep.has_default) {
+                value = ep.default_value;
+            }
+        }
+        public void set_as_int(int val)
+        {
+            value = "%i".printf(val);
+        }
+        public void set_as_bool(bool val)
+        {
+            value = (val)?YES_VALUE:NO_VALUE;
+            GLib.debug("set value: %s", value);
+        }
+        public void set_as_string(string val)
+        {
+            value = val;
+        }
+        public bool get_as_bool()
+        {
+            if(value != null)
+            {
+                return value.down() == YES_VALUE.down();
+            }
+            return false;
+        }
+        public int get_as_int()
+        {
+            if(value != null)
+            {
+                return int.parse(value);
+            }
+            return -1;
+        }
+        public unowned string? get_as_string()
+        {
+            return value;
+        }
+        
+        public signal void removed();
+    }
+    
+    
     public class Entry : GLib.Object
     {
-        /* Grepped from the man page */
-        /* zcat /Storage/qball/Debian/usr/share/man/man5/ssh_config.5.gz |
-         * grep ".It Cm" | awk  '{print "\""$3"\","}'
-         * Remove host and hostname
-         */
-        public static string[] KEYS =
-        {
-            "AddressFamily",
-            "BatchMode",
-            "BindAddress",
-            "ChallengeResponseAuthentication",
-            "CheckHostIP",
-            "Cipher",
-            "Ciphers",
-            "ClearAllForwardings",
-            "Compression",
-            "CompressionLevel",
-            "ConnectTimeout",
-            "ConnectionAttempts",
-            "ControlMaster",
-            "ControlPath",
-            "DynamicForward",
-            "EnableSSHKeysign",
-            "EscapeChar",
-            "ForwardAgent",
-            "ForwardX11",
-            "ForwardX11Trusted",
-            "GSSAPIAuthentication",
-            "GSSAPIDelegateCredentials",
-            "GSSAPITrustDns",
-            "GatewayPorts",
-            "GlobalKnownHostsFile",
-            "HashKnownHosts",
-            "HostKeyAlgorithms",
-            "HostKeyAlias",
-            "HostbasedAuthentication",
-            "IdentitiesOnly",
-            "IdentityFile",
-            "KbdInteractiveDevices",
-            "LocalCommand",
-            "LocalForward",
-            "LogLevel",
-            "MACs",
-            "NoHostAuthenticationForLocalhost",
-            "NumberOfPasswordPrompts",
-            "PasswordAuthentication",
-            "PermitLocalCommand",
-            "Port",
-            "PreferredAuthentications",
-            "Protocol",
-            "ProxyCommand",
-            "PubkeyAuthentication",
-            "RSAAuthentication",
-            "RekeyLimit",
-            "RemoteForward",
-            "RhostsRSAAuthentication",
-            "SendEnv",
-            "ServerAliveCountMax",
-            "ServerAliveInterval",
-            "SetupTimeOut",
-            "SmartcardDevice",
-            "StrictHostKeyChecking",
-            "TCPKeepAlive",
-            "Tunnel",
-            "TunnelDevice",
-            "UsePrivilegedPort",
-            "User",
-            "UserKnownHostsFile",
-            "VerifyHostKeyDNS",
-            "XAuthLocation",
-            null
-        };
-        
         /* Name of the entry */
         private string _name = "";
-        
+
         public bool validate_pattern(string val)
         {
             return Regex.match_simple("^[a-zA-Z0-9\\.\\?\\*]+$", val);
         }
         public bool validate_hostname(string val)
         {
-            return Regex.match_simple("^[a-zA-Z0-9\\.]*$", val);        
+            return Regex.match_simple("^[a-zA-Z0-9\\.]*$", val);
         }
         public string name
         {
@@ -143,7 +240,6 @@ namespace SSHConf
                 if(_name != value)
                 {
                     _name = value;
-                    changed();
                 }
             }
         }
@@ -161,7 +257,6 @@ namespace SSHConf
                 if(_hostname != value)
                 {
                     _hostname = value;
-                    changed();
                 }
             }
         }
@@ -178,41 +273,50 @@ namespace SSHConf
                 if(_enabled != value)
                 {
                     _enabled = value;
-                    changed();
                 }
             }
         }
 
-        public signal void changed();
-        public MultiMap<string, string> settings =  new HashMultiMap<string, string>();
-
+        public enum ChangedType {
+            PROPERTY_ADDED
+        }
+        public signal void changed(ChangedType what);
+        public GLib.List<SSHConf.Property> settings = null;
+        /* Check if entry has a property with key */
+        public bool has_prop_key(string key)
+        {
+            foreach(var prop in settings)
+            {
+                if(prop.ep.name.down() == key.down())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public void new_prop(string key)
+        {
+            var entry = new Property(this,key);
+            settings.append((owned)entry);
+            changed(ChangedType.PROPERTY_ADDED);
+        }
         public void add_pair(string key, string value)
         {
-            var comp = key.down();
-            stdout.printf("adding: '%s': '%s'\n", key, value);
-            // Lookup the key in the KEYS list, and use that value,
-            // with right capitals.
-            /// @todo make a less naive implementation?
-            foreach(string k in KEYS)
-            {
-                if(comp == k.down()) {
-                    comp = k;
-                    break;
-                }
+            var entry = new Property(this,key);
+            entry.set_as_string(value);
+            settings.append((owned)entry);
+            changed(ChangedType.PROPERTY_ADDED);
+        }
+
+        public void remove_prop(Property prop)
+        {
+            weak GLib.List<SSHConf.Property> item = settings.find(prop);
+            if(item != null) {
+                Property p =(owned)item.data;
+                settings.delete_link(item);
+                p.removed();
+                p = null;
             }
-            settings.set(comp.dup(),value.dup());
-            changed();
-        }
-        public void update_pair(string key, string old_value, string value)
-        {
-            settings.remove(key, old_value);
-            settings.set(key, value);
-            changed();
-        }
-        public void remove_pair(string key, string value)
-        {
-            settings.remove(key, value);
-            changed();
         }
 
         public virtual void write_entry(GLib.DataOutputStream da) throws GLib.IOError
@@ -231,15 +335,15 @@ namespace SSHConf
                     da.put_string("\n");
                 }
 
-                foreach(var miter in settings.get_all_keys())
+                foreach(var prop in settings)
                 {
-                    foreach(var value in settings.get(miter))
+                    if(prop.get_as_string() != null)
                     {
                         if(!_enabled) da.put_string("#");
                         da.put_string("\t");
-                        da.put_string(miter);
+                        da.put_string(prop.ep.name);
                         da.put_string(" ");
-                        da.put_string(value);
+                        da.put_string(prop.get_as_string());
                         da.put_string("\n");
                     }
                 }
@@ -257,3 +361,4 @@ namespace SSHConf
         }
     }
 }
+
