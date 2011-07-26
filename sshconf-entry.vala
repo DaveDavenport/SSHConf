@@ -416,7 +416,7 @@ namespace SSHConf
             enabled = en.enabled;
             foreach(var prop in en.settings)
             {
-                entry.add_pair(prop.ep.name, prop.get_as_string());
+                add_pair(prop.ep.name, prop.get_as_string());
             }
         }
 
