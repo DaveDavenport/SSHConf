@@ -176,7 +176,7 @@ namespace SSHConf
     class Editor : Gtk.VBox
     {
         private Entry entry;
-        private Gtk.Window parent_window = null;
+        private unowned Gtk.Window parent_window = null;
         private Gtk.Entry name_entry = null;
         private Gtk.Entry hostname_entry = null;
 
