@@ -22,8 +22,8 @@ using Gtk;
 using Gee;
 namespace SSHConf
 {
-    public const string YES_VALUE = "yes";
-    public const string NO_VALUE = "no";
+    public const string VALUE_YES = "yes";
+    public const string VALUE_NO = "no";
     public class DefaultEntry : Entry
     {
         public override void write_entry(GLib.DataOutputStream da) throws GLib.IOError
@@ -72,38 +72,167 @@ namespace SSHConf
         /* if we can have 1 or more entries of this */
         public bool multi_instances;
     }
-
+    /*
+     * This list is gotten from ssh_config
+     */
     public const EntryProperty[] KEYS =
     {
         // any inet4 ,inet6
-        {"AddressFamily",                   PropertyType.STRING,    false,  null    ,false},
-        {"BatchMode",                       PropertyType.BOOL,      true,   NO_VALUE    ,false},
-        {"BindAddress",                     PropertyType.STRING,    false,  null    ,false},
-        {"ChallengeResponseAuthentication", PropertyType.BOOL,      true,   YES_VALUE   ,false},
-        {"CheckHostIP",                     PropertyType.BOOL,      true,   YES_VALUE   ,false},
+        {
+            "AddressFamily",
+            PropertyType.STRING,
+            false,  null,
+            false
+        },
+        {
+            "BatchMode",
+            PropertyType.BOOL,
+            true,   VALUE_NO,
+            false
+        },
+        {
+            "BindAddress",
+            PropertyType.STRING,
+            false,  null,
+            false
+        },
+        {
+            "ChallengeResponseAuthentication",
+            PropertyType.BOOL,
+            true,   VALUE_YES,
+            false
+        },
+        {
+            "CheckHostIP",
+            PropertyType.BOOL,
+            true,   VALUE_YES,
+            false
+        },
         // des, 3des, blowfish
-        {"Cipher",                          PropertyType.STRING,    true,  "3des"   ,false},
+        {
+            "Cipher",
+            PropertyType.STRING,
+            true,  "3des",
+            false
+        },
         // this is a list.
-        {"Ciphers",                         PropertyType.STRING,    false,  null    ,false},
-        {"ClearAllForwardings",             PropertyType.BOOL,      true,   NO_VALUE    ,false},
-        {"Compression",                     PropertyType.BOOL,      true,   NO_VALUE    ,false},
-        {"CompressionLevel",                PropertyType.INT,       false,  null    ,false},
-        {"ConnectTimeout",                  PropertyType.INT,       false,  null    ,false},
-        {"ForwardX11",                      PropertyType.BOOL,      true,   NO_VALUE    ,false},
-        {"User",                            PropertyType.STRING,    false,  null    ,false},
-        {"IdentityFile",                    PropertyType.STRING,    false,  null    ,true},
-        {"Port",                            PropertyType.INT,       false,  null    ,false},
-        {"ProxyCommand",                    PropertyType.STRING,    false,  null    ,false},
-        {"LocalForward",                    PropertyType.STRING,    false,  null    ,true}
-        /*            "ConnectionAttempts",
-                    "ControlMaster",
-                    "ControlPath",
-                    "DynamicForward",
-                    "EnableSSHKeysign",
-                    "EscapeChar",
-                    "ForwardAgent",*/
-        /*            "ForwardX11Trusted",
-                    "GSSAPIAuthentication",
+        {
+            "Ciphers",  
+            PropertyType.STRING,
+            false, null,
+            false
+         },
+        {
+            "ClearAllForwardings",
+            PropertyType.BOOL,
+            true,   VALUE_NO,
+            false
+         },
+        {
+            "Compression",
+            PropertyType.BOOL,
+            true,   VALUE_NO,
+            false
+        },
+        {
+            "CompressionLevel",
+            PropertyType.INT,
+            false,  null,
+            false
+        },
+        {
+            "ConnectTimeout",
+            PropertyType.INT,
+            false,  null,
+            false
+        },
+        {
+            "ForwardX11",
+            PropertyType.BOOL,
+            true,   VALUE_NO,
+            false
+        },
+        {
+            "User",
+            PropertyType.STRING,
+            false,  null,
+            false
+        },
+        {
+            "IdentityFile",
+            PropertyType.STRING,    
+            false,  null,
+            true
+        },
+        {
+            "Port",
+            PropertyType.INT,
+            false,  null,
+            false
+        },
+        {
+            "ProxyCommand",
+            PropertyType.STRING,
+            false,  null,
+            false
+        },
+        {
+            "LocalForward",
+            PropertyType.STRING,
+            false,  null,
+            true
+        },
+        {
+            "ConnectionAttempts",
+            PropertyType.INT,
+            true, "1",
+            false
+        },
+        // this one needs the option yes,no,ask.
+        {
+            "ControlMaster",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
+        },
+        {
+             "ControlPath",
+             PropertyType.STRING,
+             true, "none",
+             false
+        },
+        {
+             "DynamicForward",
+             PropertyType.STRING,
+             false, null,
+             true
+        },
+        {
+             "EnableSSHKeysign",
+             PropertyType.BOOL,
+             true, VALUE_NO,
+             false
+        },
+        {
+             "EscapeChar",
+             PropertyType.STRING,
+             true, "~",
+             false
+        },
+        {
+             "ForwardAgent",
+             PropertyType.BOOL,
+             true, VALUE_NO,
+             false
+        },
+        {
+             "ForwardX11Trusted",
+             PropertyType.BOOL,
+             true, VALUE_YES,
+             false
+        }
+             
+ /*                   "GSSAPIAuthentication",
                     "GSSAPIDelegateCredentials",
                     "GSSAPITrustDns",
                     "GatewayPorts",
@@ -184,7 +313,7 @@ namespace SSHConf
         }
         public void set_as_bool(bool val)
         {
-            value = (val)?YES_VALUE:NO_VALUE;
+            value = (val)?VALUE_YES:VALUE_NO;
             GLib.debug("set value: %s", value);
         }
         public void set_as_string(string val)
@@ -195,7 +324,7 @@ namespace SSHConf
         {
             if(value != null)
             {
-                return value.down() == YES_VALUE.down();
+                return value.down() == VALUE_YES.down();
             }
             return false;
         }

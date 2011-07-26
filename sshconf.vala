@@ -348,13 +348,18 @@ namespace SSHConf
             application.add_window(a);
 
             /* Create path to ~/.ssh/config */
+            if(argv.length > 1) {
+                a.load_file(argv[1]);            
+            }else{
             var path = GLib.Path.build_filename(
                 GLib.Environment.get_home_dir(),
                 ".ssh",
                 "config");
+                /* Load the file */
+             a.load_file(path);
+            }
 
-            /* Load the file */
-            a.load_file(path);
+            
 
             /* Response to the activate signal on GApplication by rasing
              * window */
