@@ -119,7 +119,7 @@ namespace SSHConf
         },
         // this is a list.
         {
-            "Ciphers",  
+            "Ciphers",
             PropertyType.STRING,
             false, null,
             false
@@ -162,7 +162,7 @@ namespace SSHConf
         },
         {
             "IdentityFile",
-            PropertyType.FILENAME,    
+            PropertyType.FILENAME,
             false,  null,
             true
         },
@@ -367,11 +367,33 @@ namespace SSHConf
         {
             return value;
         }
-        
+
+        /**
+         * get|set_path():
+         *
+         * Converts from and to relative path.
+         * ~/ is replaced by homedir
+         */
+        public string? get_as_path()
+        {
+            if(value == null) return null;
+
+            string homedir = GLib.Environment.get_home_dir()+"/";
+            string val = value.replace("~/",homedir);
+
+            return val;
+        }
+
+        public void set_as_path(string val)
+        {
+            string homedir = GLib.Environment.get_home_dir()+"/";
+            value = val.replace(homedir, "~/");
+        }
+
         public signal void removed();
     }
-    
-    
+
+
     public class Entry : GLib.Object
     {
         /* Name of the entry */
@@ -532,4 +554,3 @@ namespace SSHConf
         }
     }
 }
-

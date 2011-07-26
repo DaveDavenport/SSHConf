@@ -36,8 +36,11 @@ namespace SSHConf
             entry = en;
             this.prop = p;
             var l = new Label(prop.ep.name);
+            l.set_alignment(0, 0.5f);
             pack_start(l, false, false, 0);
             if(sg!=null) sg.add_widget(l);
+
+
             // Remove button
             var remove_but = new Gtk.Button();
             remove_but.set_image(new Gtk.Image.from_stock("gtk-remove", Gtk.IconSize.MENU));
@@ -140,16 +143,7 @@ namespace SSHConf
             {
                 field = new Gtk.FileChooserButton("Select file", Gtk.FileChooserAction.OPEN);
                 if(prop.get_as_string() != null){
-                        try{
-                            GLib.File f = GLib.File.new_for_commandline_arg(prop.get_as_string());
-                            
-                            (field as Gtk.FileChooser).set_file(f);
-                            stdout.printf("..Testing..: %s\n",f.get_path());
-                        }catch(GLib.Error e) {
-                            stdout.printf("Error: %s\n", e.message);
-                            (field as Gtk.FileChooser).set_filename(prop.get_as_string());
-                        }
-
+                          (field as Gtk.FileChooser).set_filename(prop.get_as_path());
                 }
                 /* listen to property changes */
                 prop.notify["value"].connect((source,spec)=>
@@ -157,14 +151,14 @@ namespace SSHConf
                     if((field as Gtk.FileChooser).get_filename()
                         != prop.get_as_string())
                     {
-                        (field as Gtk.FileChooser).set_filename(prop.get_as_string());
+                        (field as Gtk.FileChooser).set_filename(prop.get_as_path());
                     }
                 });
                 (field as Gtk.FileChooserButton).file_set.connect((source)=>
                 {
                     string fn = source.get_filename();
                     if(fn != prop.get_as_string()) {
-                        prop.set_as_string(fn);
+                        prop.set_as_path(fn);
                     }
                 });
                 pack_end(field, true, true, 0);
@@ -341,7 +335,7 @@ namespace SSHConf
         private void add_entry()
         {
             /* popup a dialog with the different types */
-            var dialog = new Gtk.MessageDialog(parent_window, 
+            var dialog = new Gtk.MessageDialog(parent_window,
                         Gtk.DialogFlags.MODAL,
                         Gtk.MessageType.QUESTION,
                         Gtk.ButtonsType.OK_CANCEL,
@@ -349,7 +343,7 @@ namespace SSHConf
             var combo = new Gtk.ComboBoxText();
             (dialog.get_message_area() as Gtk.Box).pack_end(combo,false,false,0);
             combo.show();
-            
+
             foreach(var ep in SSHConf.KEYS)
             {
                 if(ep.multi_instances || !entry.has_prop_key(ep.name))
@@ -371,7 +365,7 @@ namespace SSHConf
             }
             dialog.destroy();
         }
-        
+
         ~Editor()
         {
             stdout.printf("~Editor\n");
@@ -428,4 +422,3 @@ namespace SSHConf
         }
     }
 }
-
