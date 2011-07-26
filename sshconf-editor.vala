@@ -296,12 +296,34 @@ namespace SSHConf
             var sw = new Gtk.ScrolledWindow(null,null);
             sw.shadow_type = Gtk.ShadowType.ETCHED_IN;
 
+            var event = new Gtk.EventBox();
+            event.set_visible_window(true);
+
+            event.style_updated.connect((source)=> {
+
+                stdout.printf("style updated\n");
+                var context2 = event.get_style_context();
+                var path = new Gtk.WidgetPath();
+
+                typeof(Gtk.TreeView).class_ref();
+                path.append_type(typeof(Gtk.Widget));
+                context2.set_path(path);
+                context2.add_class("view");
+
+                Gdk.RGBA bg_color;
+                context2.get_background_color(Gtk.StateFlags.NORMAL, bg_color);
+                source.override_background_color(Gtk.StateFlags.NORMAL, bg_color);
+            });
+
+
+
 
             prop_vbox = new Gtk.VBox(true, 6);
             var alivp = new Gtk.Alignment(0,0,1,0);
             alivp.set_padding(6,6,12,6);
             alivp.add(prop_vbox);
-            sw.add_with_viewport(alivp);
+            event.add(alivp);
+            sw.add_with_viewport(event);
             this.pack_start(sw, true, true, 0);
 
             /* button box */
