@@ -201,7 +201,9 @@ namespace SSHConf
             {
                 GLib.error("Failed to get iter for new node");
             }
-            entry.changed.connect(entry_changed);
+            entry.notify["name"].connect((source,spec)=>{
+                entry_changed((source as SSHConf.Entry));
+            });
             sort_columns();
             path = new Gtk.TreePath.from_indices(entries.index(entry),-1);
             return path;
@@ -216,7 +218,6 @@ namespace SSHConf
                 int index = entries.index(entry);
                 Gtk.TreePath path = new Gtk.TreePath.from_indices(index, -1);
                 Entry e = (owned)en.data;
-                e.changed.disconnect(entry_changed);
                 entries.delete_link(en);
                 e = null;
                 /* signal row deleted */

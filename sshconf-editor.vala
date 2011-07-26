@@ -23,87 +23,195 @@ using Gee;
 
 namespace SSHConf
 {
+    class EditorProp : Gtk.HBox
+    {
+        private Entry entry;
+        private Property prop;
+        private Gtk.Widget field = null;
+        construct{
+            spacing = 6;
+        }
+        public EditorProp(SSHConf.Entry en, Property p, Gtk.SizeGroup? sg)
+        {
+            entry = en;
+            this.prop = p;
+            var l = new Label(prop.ep.name);
+            pack_start(l, false, false, 0);
+            if(sg!=null) sg.add_widget(l);
+            // Remove button
+            var remove_but = new Gtk.Button();
+            remove_but.set_image(new Gtk.Image.from_stock("gtk-remove", Gtk.IconSize.MENU));
+            remove_but.set_relief(Gtk.ReliefStyle.NONE);
+            pack_end(remove_but, false, false, 0);
+            /* remove property */
+            remove_but.clicked.connect((source)=>
+            {
+                entry.remove_prop(this.prop);
+            });
+
+            /* handle if property gets destroyed */
+            prop.removed.connect(()=>
+            {
+                this.destroy();
+            });
+            /* Field (depending on type) */
+            if(prop.ep.type == PropertyType.BOOL)
+            {
+                field = new Gtk.Switch();
+                (field as Gtk.Switch).set_active(prop.get_as_bool());
+                pack_end(field, false, false, 0);
+                /* listen to property changes */
+                prop.notify["value"].connect((source,spec)=>
+                {
+                    if((field as Gtk.Switch).active != prop.get_as_bool())
+                    {
+                        (field as Gtk.Switch).set_active(prop.get_as_bool());
+                    }
+                });
+                /* listen to switch changes */
+                field.notify["active"].connect((source,spec)=>
+                {
+                    if((field as Gtk.Switch).active != this.prop.get_as_bool())
+                    {
+                        prop.set_as_bool((field as Gtk.Switch).active);
+                    }
+                });
+
+            }
+            else if(prop.ep.type == PropertyType.INT)
+            {
+                field = new Gtk.SpinButton.with_range(int.MIN, int.MAX, 1);
+
+                /* set current value */
+                (field as Gtk.SpinButton).set_value(prop.get_as_int());
+
+                /* handle spin change */
+                field.notify["value"].connect((source,spec)=>
+                {
+                    int value = (source as Gtk.SpinButton).get_value_as_int();
+                        if(value != prop.get_as_int())
+                    {
+                        prop.set_as_int(value);
+                    }
+                });
+                /* listen to property changes */
+                prop.notify["value"].connect((source,spec)=>
+                {
+                    if((field as Gtk.SpinButton).get_value_as_int()
+                        != prop.get_as_int())
+                    {
+                        (field as Gtk.SpinButton).set_value(prop.get_as_int());
+                    }
+                });
+
+                pack_end(field, true, true, 0);
+
+            }
+            else if(prop.ep.type == PropertyType.STRING)
+            {
+                field = new Gtk.Entry();
+                (field as Gtk.Entry).set_text(prop.get_as_string());
+                (field as Gtk.Entry).set_width_chars(12);
+
+                /* listen to text entry changes */
+                field.notify["text"].connect((source,spec)=>
+                {
+                    string value = (source as Gtk.Entry).get_text();
+                        if(value != prop.get_as_string())
+                    {
+                        prop.set_as_string(value);
+                    }
+                });
+                /* listen to property changes */
+                prop.notify["value"].connect((source,spec)=>
+                {
+                    if((field as Gtk.Entry).get_text()
+                        != prop.get_as_string())
+                    {
+                        (field as Gtk.Entry).set_text(prop.get_as_string());
+                    }
+                });
+
+                pack_end(field, true, true, 0);
+
+            }
+            else
+            {
+                GLib.error("Unknown type: %p %i",(void *)prop.ep, prop.ep.type);
+            }
+            this.show_all();
+        }
+    }
     /**
      * Edit an Entry
      */
     class Editor : Gtk.VBox
     {
         private Entry entry;
+        private Gtk.Window parent_window = null;
         private Gtk.Entry name_entry = null;
         private Gtk.Entry hostname_entry = null;
-        private Gtk.ListStore model = null;
 
-        private Gtk.TreeView tree = null;
-        private Gtk.ToolItem remove_rule_button = null;
         private Gtk.ToolItem add_rule_button = null;
         private Gtk.Switch enable_switch = null;
 
-        private Gtk.TreeModel keys_model = null;
         private Gtk.Label title_label = null;
 
         private Gtk.HBox enable_hbox = null;
         private Gtk.HBox name_hbox = null;
         private Gtk.HBox hostname_hbox = null;
 
+        private Gtk.VBox prop_vbox = null;
 
         private void fill_settings_list()
         {
             int i = 0;
             /* Clear the list */
-            model.clear();
-
-            foreach(var key in entry.settings.get_all_keys())
+            foreach(var child in prop_vbox.get_children())
             {
-                foreach(var value in entry.settings.get(key))
-                {
-                    Gtk.TreeIter iter;
-                    (model as ListStore).insert_with_values(out iter, i,
-                            0, key,
-                            1, value);
-                   i++;
-                }
+                child.destroy();
             }
+            var sg = new SizeGroup(Gtk.SizeGroupMode.HORIZONTAL);
+
+            foreach(unowned SSHConf.Property prop in entry.settings)
+            {
+                var entry_edit = new EditorProp(entry,prop,sg);
+                prop_vbox.pack_start(entry_edit, false, false, 0);
+            }
+            prop_vbox.show_all();
 
         }
         construct
         {
 
-        
             title_label = new Label("");
             title_label.set_markup("<span size='xx-large' weight='bold'>Entry settings</span>");
             this.pack_start(title_label, false, false, 0);
             title_label.set_alignment(0f, 0.5f);
             title_label.set_padding(6,6);
-        
-        
-            int i=0;
 
-            keys_model = new Gtk.ListStore(1, typeof(string));
-            for(i=0; Entry.KEYS[i] != null; i++)
-            {
-                (keys_model as ListStore).insert_with_values(null,i, 0, Entry.KEYS[i]);
-            }
+            int i=0;
 
             var SizeGroup = new Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL);
             /**
              * Enable button
              */
-             enable_hbox = new Gtk.HBox(false,6);
-             enable_switch = new Gtk.Switch();
-             var ali = new Gtk.Alignment(0.0f, 0.5f, 0.0f, 0.0f);
-             ali.add(enable_switch);
-             var label = new Label("Enable");
-             SizeGroup.add_widget(label);
-             label.set_alignment(1f, 0.5f);
-             enable_hbox.pack_start(label, false, false, 0);
-             enable_hbox.pack_start(ali, true, true, 0);
-             this.pack_start(enable_hbox, false, false, 3);
+            enable_hbox = new Gtk.HBox(false,6);
+            enable_switch = new Gtk.Switch();
+            var ali = new Gtk.Alignment(0.0f, 0.5f, 0.0f, 0.0f);
+            ali.add(enable_switch);
+            var label = new Label("Enable");
+            SizeGroup.add_widget(label);
+            label.set_alignment(1f, 0.5f);
+            enable_hbox.pack_start(label, false, false, 0);
+            enable_hbox.pack_start(ali, true, true, 0);
+            this.pack_start(enable_hbox, false, false, 3);
 
-            enable_switch.notify["active"].connect((source) => {
+            enable_switch.notify["active"].connect((source) =>
+            {
                 stdout.printf("Switch activate toggle\n");
-                entry.enabled = enable_switch.get_active();            
+                    entry.enabled = enable_switch.get_active();
             });
-
 
             /* Name entry */
             name_hbox = new Gtk.HBox(false,6);
@@ -111,14 +219,19 @@ namespace SSHConf
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
             name_entry = new Gtk.Entry();
-            name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");            
-            name_entry.changed.connect((source) => {
-                if((source as Gtk.Entry).get_text() != entry.name) {
+            name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
+            name_entry.changed.connect((source) =>
+            {
+                if((source as Gtk.Entry).get_text() != entry.name)
+                {
                     entry.name = (source as Gtk.Entry).get_text();
                 }
-                if(entry.validate_pattern(entry.name)) {
+                if(entry.validate_pattern(entry.name))
+                {
                     name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");
-                }else{
+                }
+                else
+                {
                     name_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
                 }
             });
@@ -126,21 +239,25 @@ namespace SSHConf
             name_hbox.pack_start(name_entry, true, true, 0);
             this.pack_start(name_hbox, false, false, 3);
 
-
             /* Hostname entry */
             hostname_hbox = new Gtk.HBox(false,6);
             label = new Label("Hostname");
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
             hostname_entry = new Gtk.Entry();
-            hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");            
-            hostname_entry.changed.connect((source) => {
-                if((source as Gtk.Entry).get_text() != entry.hostname) {
+            hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");
+            hostname_entry.changed.connect((source) =>
+            {
+                if((source as Gtk.Entry).get_text() != entry.hostname)
+                {
                     entry.hostname = (source as Gtk.Entry).get_text();
                 }
-                if(entry.validate_hostname(entry.hostname)) {
+                if(entry.validate_hostname(entry.hostname))
+                {
                     hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-yes");
-                }else{
+                }
+                else
+                {
                     hostname_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, "gtk-no");
                 }
             });
@@ -148,53 +265,16 @@ namespace SSHConf
             hostname_hbox.pack_start(hostname_entry, true, true, 0);
             this.pack_start(hostname_hbox, false, false,3);
 
-            /* tree */
-            model = new Gtk.ListStore(2, typeof(string), typeof(string));
-
             var sw = new Gtk.ScrolledWindow(null,null);
             sw.shadow_type = Gtk.ShadowType.ETCHED_IN;
-            tree = new Gtk.TreeView();
-            tree.set_model(model);
-            tree.rules_hint = true;
-            sw.add(tree);
+
+
+            prop_vbox = new Gtk.VBox(true, 6);
+            var alivp = new Gtk.Alignment(0,0,1,0);
+            alivp.set_padding(6,6,12,6);
+            alivp.add(prop_vbox);
+            sw.add_with_viewport(alivp);
             this.pack_start(sw, true, true, 0);
-
-            var renderer = new Gtk.CellRendererCombo();
-	        renderer.has_entry = true;
-            tree.insert_column_with_attributes(0,"Key", renderer, "text",0,null);
-            renderer.set("model", keys_model);
-            renderer.set("text-column", 0);
-            renderer.set("editable", true);
-            tree.get_column(0).set_min_width(150);
-            tree.get_column(0).set_sizing(Gtk.TreeViewColumnSizing.FIXED);
-
-
-            renderer.edited.connect((source, path, new_key)=> {
-                Gtk.TreeIter iter;
-                if(model.get_iter_from_string(out iter, path))
-                {
-                    string old_value, key;
-                    model.get(iter, 0, out key, 1, out old_value);
-
-                    entry.add_pair(new_key, old_value);
-                    entry.remove_pair(key, old_value);
-                }
-            });
-
-
-            var text_renderer = new Gtk.CellRendererText();
-            tree.insert_column_with_attributes(1,"Value", text_renderer, "text",1, null);
-            text_renderer.set("editable", true);
-            text_renderer.edited.connect((source, path, new_text)=> {
-                Gtk.TreeIter iter;
-                if(model.get_iter_from_string(out iter, path))
-                {
-                    string old_value, key;
-                    model.get(iter, 0, out key, 1, out old_value);
-
-                    entry.update_pair(key, old_value, new_text);
-                }
-            });
 
             /* button box */
             var bbox = new Gtk.Toolbar();
@@ -211,82 +291,102 @@ namespace SSHConf
             /* add */
             add_rule_button = new Gtk.ToolButton.from_stock("gtk-add");
             add_rule_button.tooltip_text = "Add parameter";
-            (add_rule_button as Gtk.ToolButton).clicked.connect((source) => {
-                    Gtk.TreeIter iter;
-                    (model as ListStore).insert_with_values(
-                        out iter, -1,
-                        0, "<key>",
-                        1, "<value>");
-                    });
+            (add_rule_button as Gtk.ToolButton).clicked.connect((source) =>
+            {
+                add_entry();
+            });
 
             bbox.insert(add_rule_button, 0);
-            /* remove */
-            remove_rule_button = new Gtk.ToolButton.from_stock("gtk-remove");
-            remove_rule_button.tooltip_text = "Remove parameter";
-            remove_rule_button.sensitive = false;
 
-            (remove_rule_button as Gtk.ToolButton).clicked.connect((source) => {
-                Gtk.TreeIter iter;
-                if(tree.get_selection().get_selected(null, out iter))
-                {
-                    string key,value;
-                    model.get(iter, 0, out key, 1, out value);
-                    entry.remove_pair(key, value);
-                }
-            });
 
-            bbox.insert(remove_rule_button, 1);
             this.pack_start(bbox, false, false, 0);
 
-            /* selection */
-            tree.get_selection().changed.connect((source) => {
-                Gtk.TreeIter iter;
-                if(tree.get_selection().get_selected(null, out iter))
-                {
-                    remove_rule_button.sensitive = true;
-                } else {
-                    remove_rule_button.sensitive = false;
-                }
-
-            });
         }
 
+
+        private void add_entry()
+        {
+            /* popup a dialog with the different types */
+            var dialog = new Gtk.MessageDialog(parent_window, 
+                        Gtk.DialogFlags.MODAL,
+                        Gtk.MessageType.QUESTION,
+                        Gtk.ButtonsType.OK_CANCEL,
+                        "Add a property of type:");
+            var combo = new Gtk.ComboBoxText();
+            (dialog.get_message_area() as Gtk.Box).pack_end(combo,false,false,0);
+            combo.show();
+            
+            foreach(var ep in SSHConf.KEYS)
+            {
+                if(ep.multi_instances || !entry.has_prop_key(ep.name))
+                {
+                    combo.append_text(ep.name);
+                }
+            }
+            combo.set_active(0);
+            switch(dialog.run())
+            {
+                case Gtk.ResponseType.OK:
+                    string val = combo.get_active_text();
+                    if(val != null) {
+                        entry.new_prop(val);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            dialog.destroy();
+        }
+        
         ~Editor()
         {
             stdout.printf("~Editor\n");
         }
         public Editor (Gtk.Window parent, Entry entry)
         {
+            this.parent_window = parent;
             this.entry = entry;
 
             enable_switch.set_active(this.entry.enabled);
-            
+
             name_entry.set_text(entry.name);
-            this.entry.notify["name"].connect(() =>{
-                    name_entry.set_text(this.entry.name);
+            this.entry.notify["name"].connect(() =>
+            {
+                name_entry.set_text(this.entry.name);
             });
 
             hostname_entry.set_text(entry.hostname);
-            this.entry.notify["hostname"].connect(() =>{
-                    hostname_entry.set_text(this.entry.hostname);
+            this.entry.notify["hostname"].connect(() =>
+            {
+                hostname_entry.set_text(this.entry.hostname);
             });
 
-            this.entry.changed.connect(() => {
-                if(this.entry.enabled != enable_switch.get_active()) {
+            this.entry.notify["enabled"].connect(() =>
+            {
+                if(this.entry.enabled != enable_switch.get_active())
+                {
                     enable_switch.set_active(this.entry.enabled);
                 }
-                fill_settings_list();
+
+            });
+            this.entry.changed.connect((what) =>
+            {
+                if(what == SSHConf.Entry.ChangedType.PROPERTY_ADDED)
+                {
+                    fill_settings_list();
+                }
             });
             fill_settings_list();
             this.show_all();
 
             /**
-             * If default settings modify editor a bit 
+             * If default settings modify editor a bit
              */
-            if(entry is DefaultEntry) {
+            if(entry is DefaultEntry)
+            {
                 title_label.set_markup("<span size='xx-large' weight='bold'>Default settings</span>");
                 stdout.printf("Default entry\n");
-                
+
                 enable_hbox.hide();
                 name_hbox.hide();
                 hostname_hbox.hide();
@@ -294,3 +394,4 @@ namespace SSHConf
         }
     }
 }
+
