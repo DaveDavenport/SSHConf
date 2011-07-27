@@ -23,7 +23,7 @@ using Gee;
 namespace SSHConf
 {
     /* Possible property values */
-        /* Type of property */
+    /* Type of property */
     public enum PropertyType
     {
         BOOL,
@@ -97,13 +97,13 @@ namespace SSHConf
             PropertyType.STRING,
             false, null,
             false
-         },
+        },
         {
             "ClearAllForwardings",
             PropertyType.BOOL,
             true,   VALUE_NO,
             false
-         },
+        },
         {
             "Compression",
             PropertyType.BOOL,
@@ -172,40 +172,40 @@ namespace SSHConf
             false
         },
         {
-             "ControlPath",
-             PropertyType.STRING,
-             true, "none",
-             false
+            "ControlPath",
+            PropertyType.STRING,
+            true, "none",
+            false
         },
         {
-             "DynamicForward",
-             PropertyType.STRING,
-             false, null,
-             true
+            "DynamicForward",
+            PropertyType.STRING,
+            false, null,
+            true
         },
         {
-             "EnableSSHKeysign",
-             PropertyType.BOOL,
-             true, VALUE_NO,
-             false
+            "EnableSSHKeysign",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
         },
         {
-             "EscapeChar",
-             PropertyType.STRING,
-             true, "~",
-             false
+            "EscapeChar",
+            PropertyType.STRING,
+            true, "~",
+            false
         },
         {
-             "ForwardAgent",
-             PropertyType.BOOL,
-             true, VALUE_NO,
-             false
+            "ForwardAgent",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
         },
         {
-             "ForwardX11Trusted",
-             PropertyType.BOOL,
-             true, VALUE_YES,
-             false
+            "ForwardX11Trusted",
+            PropertyType.BOOL,
+            true, VALUE_YES,
+            false
         },
         {
             "GSSAPIAuthentication",
@@ -214,10 +214,10 @@ namespace SSHConf
             false
         },
         {
-           "GSSAPIDelegateCredentials",
-           PropertyType.BOOL,
-           true, VALUE_NO,
-           false
+            "GSSAPIDelegateCredentials",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
         },
         {
             "GSSAPITrustDns",
@@ -226,16 +226,16 @@ namespace SSHConf
             false
         },
         {
-           "GatewayPorts",
-           PropertyType.BOOL,
-           true, VALUE_NO,
-           false
+            "GatewayPorts",
+            PropertyType.BOOL,
+            true, VALUE_NO,
+            false
         },
         {
-           "GlobalKnownHostsFile",
-           PropertyType.FILENAME,
-           false, null,
-           false
+            "GlobalKnownHostsFile",
+            PropertyType.FILENAME,
+            false, null,
+            false
         }
         /*
                     "HashKnownHosts",
@@ -277,3 +277,4 @@ namespace SSHConf
     };
 
 }
+

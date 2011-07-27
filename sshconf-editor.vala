@@ -32,7 +32,7 @@ namespace SSHConf
             spacing = 6;
         }
     }
-    
+
     class EditorPropLocalForward : SSHConf.EditorProp
     {
         private Gtk.Entry      local_host;
@@ -40,70 +40,87 @@ namespace SSHConf
         private Gtk.Entry      remote_host;
         private Gtk.SpinButton remote_port;
         private bool block_update = false;
-        
+
         public void write_to_property()
         {
             block_update = true;
             string val ="";
-            
-            if(local_host.buffer.get_length() > 0){
+
+            if(local_host.buffer.get_length() > 0)
+            {
                 val += local_host.get_text();
                 val += ":";
             }
-            
+
             val += "%i ".printf(local_port.get_value_as_int());
-                    
-            if(remote_host.buffer.get_length() > 0){
+
+            if(remote_host.buffer.get_length() > 0)
+            {
                 val += remote_host.get_text();
                 val += ":";
             }
             val += "%i".printf(remote_port.get_value_as_int());
-            
+
             prop.set_as_string(val);
-            
+
             block_update = false;
         }
-        
-        
+
         public void set_from_property()
         {
             block_update = true;
             string value = prop.get_as_string();
-            
+
             /* split remote local */
             var sets = value.split(" ");
-            if(sets.length != 2) {
+            if(sets.length != 2)
+            {
                 GLib.warning("Wrong forward: %s", value);
                 block_update = false;
                 return;
             }
             /* Localhost */
             var lh = sets[0].split(":");
-            if(lh.length == 1) {
+            if(lh.length == 1)
+            {
                 local_host.set_text("");
                 local_port.set_value(int.parse(lh[0]));
-            }else{
+            }
+            else
+            {
                 local_host.set_text(lh[0]);
                 local_port.set_value(int.parse(lh[1]));
             }
             /* remote */
             var rh = sets[1].split(":");
-            if(rh.length == 1) {
+            if(rh.length == 1)
+            {
                 remote_host.set_text("");
                 remote_port.set_value(int.parse(rh[0]));
-            }else{
+            }
+            else
+            {
                 remote_host.set_text(rh[0]);
                 remote_port.set_value(int.parse(rh[1]));
             }
-            
-            
+
             block_update = false;
         }
-        
+
         public EditorPropLocalForward(SSHConf.Entry en, Property p, Gtk.SizeGroup? sg)
         {
             entry = en;
             this.prop = p;
+
+            this.prop.notify["value"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    set_from_property();
+                }
+            });
+
+            /* build gui */
             var l = new Label(prop.ep.name);
             l.set_alignment(0, 0.5f);
             pack_start(l, false, false, 0);
@@ -121,32 +138,61 @@ namespace SSHConf
             });
 
             var hbox = new Gtk.VBox(true, 6);
-            pack_start(hbox,false, false,0);
+            pack_end(hbox,false, false,0);
+            local_port = new Gtk.SpinButton.with_range(1,int.MAX, 1);
+            hbox.pack_start(local_port, false, false, 0);
+
+            remote_port = new Gtk.SpinButton.with_range(1,int.MAX,1);
+            hbox.pack_start(remote_port, false, false, 0);
+
+            hbox = new Gtk.VBox(true, 6);
+            pack_end(hbox,false, false,0);
+            local_host = new Gtk.Entry();
+            hbox.pack_start(local_host, false, false, 0);
+
+            remote_host = new Gtk.Entry();
+            hbox.pack_start(remote_host, false, false, 0);
+
+            /* Label */
+            hbox = new Gtk.VBox(true, 6);
+            pack_end(hbox,false, false,0);
             l = new Label("Local:");
             l.set_alignment(0, 0.5f);
             hbox.pack_start(l, false, false, 0);
             l = new Label("Remote:");
             l.set_alignment(0, 0.5f);
             hbox.pack_start(l, false, false, 0);
-                                         
-                        
-            hbox = new Gtk.VBox(true, 6);
-            pack_start(hbox,false, false,0);
-            local_host = new Gtk.Entry();
-            hbox.pack_start(local_host, false, false, 0);
-            
-            remote_host = new Gtk.Entry();
-            hbox.pack_start(remote_host, false, false, 0);
-            
-            hbox = new Gtk.VBox(true, 6);
-            pack_start(hbox,false, false,0);
-            local_port = new Gtk.SpinButton.with_range(1,int.MAX, 1);
-            hbox.pack_start(local_port, false, false, 0);
-            
-            remote_port = new Gtk.SpinButton.with_range(1,int.MAX,1);
-            hbox.pack_start(remote_port, false, false, 0);
-            
+
             set_from_property();
+
+            remote_host.notify["text"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    write_to_property();
+                }
+            });
+            local_host.notify["text"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    write_to_property();
+                }
+            });
+            remote_port.notify["value"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    write_to_property();
+                }
+            });
+            local_port.notify["value"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    write_to_property();
+                }
+            });
         }
     }
     class EditorPropGeneric : EditorProp
@@ -154,105 +200,108 @@ namespace SSHConf
         private Gtk.Widget field = null;
         private void setup_as_bool()
         {
-                field = new Gtk.Switch();
-                (field as Gtk.Switch).set_active(prop.get_as_bool());
-                pack_end(field, false, false, 0);
-                /* listen to property changes */
-                prop.notify["value"].connect((source,spec)=>
+            field = new Gtk.Switch();
+            (field as Gtk.Switch).set_active(prop.get_as_bool());
+            pack_end(field, false, false, 0);
+            /* listen to property changes */
+            prop.notify["value"].connect((source,spec)=>
+            {
+                if((field as Gtk.Switch).active != prop.get_as_bool())
                 {
-                    if((field as Gtk.Switch).active != prop.get_as_bool())
-                    {
-                        (field as Gtk.Switch).set_active(prop.get_as_bool());
-                    }
-                });
-                /* listen to switch changes */
-                field.notify["active"].connect((source,spec)=>
+                    (field as Gtk.Switch).set_active(prop.get_as_bool());
+                }
+            });
+            /* listen to switch changes */
+            field.notify["active"].connect((source,spec)=>
+            {
+                if((field as Gtk.Switch).active != this.prop.get_as_bool())
                 {
-                    if((field as Gtk.Switch).active != this.prop.get_as_bool())
-                    {
-                        prop.set_as_bool((field as Gtk.Switch).active);
-                    }
-                });
+                    prop.set_as_bool((field as Gtk.Switch).active);
+                }
+            });
         }
         private void setup_as_int()
         {
-               field = new Gtk.SpinButton.with_range(int.MIN, int.MAX, 1);
+            field = new Gtk.SpinButton.with_range(int.MIN, int.MAX, 1);
 
-                /* set current value */
-                (field as Gtk.SpinButton).set_value(prop.get_as_int());
+            /* set current value */
+            (field as Gtk.SpinButton).set_value(prop.get_as_int());
 
-                /* handle spin change */
-                field.notify["value"].connect((source,spec)=>
+            /* handle spin change */
+            field.notify["value"].connect((source,spec)=>
+            {
+                int value = (source as Gtk.SpinButton).get_value_as_int();
+                    if(value != prop.get_as_int())
                 {
-                    int value = (source as Gtk.SpinButton).get_value_as_int();
-                        if(value != prop.get_as_int())
-                    {
-                        prop.set_as_int(value);
-                    }
-                });
-                /* listen to property changes */
-                prop.notify["value"].connect((source,spec)=>
+                    prop.set_as_int(value);
+                }
+            });
+            /* listen to property changes */
+            prop.notify["value"].connect((source,spec)=>
+            {
+                if((field as Gtk.SpinButton).get_value_as_int()
+                    != prop.get_as_int())
                 {
-                    if((field as Gtk.SpinButton).get_value_as_int()
-                        != prop.get_as_int())
-                    {
-                        (field as Gtk.SpinButton).set_value(prop.get_as_int());
-                    }
-                });
-                pack_end(field, true, true, 0);        
+                    (field as Gtk.SpinButton).set_value(prop.get_as_int());
+                }
+            });
+            pack_end(field, false, true, 0);
         }
         public void setup_as_string()
         {
-                field = new Gtk.Entry();
-                if(prop.get_as_string() != null) {
+            field = new Gtk.Entry();
+            if(prop.get_as_string() != null)
+            {
+                (field as Gtk.Entry).set_text(prop.get_as_string());
+            }
+            (field as Gtk.Entry).set_width_chars(12);
+
+            /* listen to text entry changes */
+            field.notify["text"].connect((source,spec)=>
+            {
+                string value = (source as Gtk.Entry).get_text();
+                    if(value != prop.get_as_string())
+                {
+                    prop.set_as_string(value);
+                }
+            });
+            /* listen to property changes */
+            prop.notify["value"].connect((source,spec)=>
+            {
+                if((field as Gtk.Entry).get_text()
+                    != prop.get_as_string())
+                {
                     (field as Gtk.Entry).set_text(prop.get_as_string());
                 }
-                (field as Gtk.Entry).set_width_chars(12);
+            });
 
-                /* listen to text entry changes */
-                field.notify["text"].connect((source,spec)=>
-                {
-                    string value = (source as Gtk.Entry).get_text();
-                        if(value != prop.get_as_string())
-                    {
-                        prop.set_as_string(value);
-                    }
-                });
-                /* listen to property changes */
-                prop.notify["value"].connect((source,spec)=>
-                {
-                    if((field as Gtk.Entry).get_text()
-                        != prop.get_as_string())
-                    {
-                        (field as Gtk.Entry).set_text(prop.get_as_string());
-                    }
-                });
-
-                pack_end(field, true, true, 0);        
+            pack_end(field, false, true, 0);
         }
         public void setup_as_filename()
         {
-                field = new Gtk.FileChooserButton("Select file", Gtk.FileChooserAction.OPEN);
-                if(prop.get_as_string() != null){
-                          (field as Gtk.FileChooser).set_filename(prop.get_as_path());
+            field = new Gtk.FileChooserButton("Select file", Gtk.FileChooserAction.OPEN);
+            if(prop.get_as_string() != null)
+            {
+                (field as Gtk.FileChooser).set_filename(prop.get_as_path());
+            }
+            /* listen to property changes */
+            prop.notify["value"].connect((source,spec)=>
+            {
+                if((field as Gtk.FileChooser).get_filename()
+                    != prop.get_as_string())
+                {
+                    (field as Gtk.FileChooser).set_filename(prop.get_as_path());
                 }
-                /* listen to property changes */
-                prop.notify["value"].connect((source,spec)=>
+            });
+            (field as Gtk.FileChooserButton).file_set.connect((source)=>
+            {
+                string fn = source.get_filename();
+                    if(fn != prop.get_as_string())
                 {
-                    if((field as Gtk.FileChooser).get_filename()
-                        != prop.get_as_string())
-                    {
-                        (field as Gtk.FileChooser).set_filename(prop.get_as_path());
-                    }
-                });
-                (field as Gtk.FileChooserButton).file_set.connect((source)=>
-                {
-                    string fn = source.get_filename();
-                    if(fn != prop.get_as_string()) {
-                        prop.set_as_path(fn);
-                    }
-                });
-                pack_end(field, true, true, 0);
+                    prop.set_as_path(fn);
+                }
+            });
+            pack_end(field, false, true, 0);
         }
         public EditorPropGeneric(SSHConf.Entry en, Property p, Gtk.SizeGroup? sg)
         {
@@ -262,7 +311,6 @@ namespace SSHConf
             l.set_alignment(0, 0.5f);
             pack_start(l, false, false, 0);
             if(sg!=null) sg.add_widget(l);
-
 
             // Remove button
             var remove_but = new Gtk.Button();
@@ -339,8 +387,10 @@ namespace SSHConf
                 if(prop.ep.type == PropertyType.LOCAL_FORWARD)
                 {
                     var entry_edit = new EditorPropLocalForward(entry,prop,sg);
-                    prop_vbox.pack_start(entry_edit, false, false, 0);                
-                }else{
+                    prop_vbox.pack_start(entry_edit, false, false, 0);
+                }
+                else
+                {
                     var entry_edit = new EditorPropGeneric(entry,prop,sg);
                     prop_vbox.pack_start(entry_edit, false, false, 0);
                 }
@@ -438,26 +488,24 @@ namespace SSHConf
             var event = new Gtk.EventBox();
             event.set_visible_window(true);
 
-            event.style_updated.connect((source)=> {
+            event.style_updated.connect((source)=>
+            {
 
                 stdout.printf("style updated\n");
-                var context2 = event.get_style_context();
-                var path = new Gtk.WidgetPath();
+                    var context2 = event.get_style_context();
+                    var path = new Gtk.WidgetPath();
 
-                typeof(Gtk.TreeView).class_ref();
-                path.append_type(typeof(Gtk.Widget));
-                context2.set_path(path);
-                context2.add_class("view");
+                    typeof(Gtk.TreeView).class_ref();
+                    path.append_type(typeof(Gtk.Widget));
+                    context2.set_path(path);
+                    context2.add_class("view");
 
-                Gdk.RGBA bg_color;
-                context2.get_background_color(Gtk.StateFlags.NORMAL, bg_color);
-                source.override_background_color(Gtk.StateFlags.NORMAL, bg_color);
+                    Gdk.RGBA bg_color;
+                    context2.get_background_color(Gtk.StateFlags.NORMAL, bg_color);
+                    source.override_background_color(Gtk.StateFlags.NORMAL, bg_color);
             });
 
-
-
-
-            prop_vbox = new Gtk.VBox(true, 6);
+            prop_vbox = new Gtk.VBox(false, 6);
             var alivp = new Gtk.Alignment(0,0,1,0);
             alivp.set_padding(6,6,12,6);
             alivp.add(prop_vbox);
@@ -487,20 +535,18 @@ namespace SSHConf
 
             bbox.insert(add_rule_button, 0);
 
-
             this.pack_start(bbox, false, false, 0);
 
         }
-
 
         private void add_entry()
         {
             /* popup a dialog with the different types */
             var dialog = new Gtk.MessageDialog(parent_window,
-                        Gtk.DialogFlags.MODAL,
-                        Gtk.MessageType.QUESTION,
-                        Gtk.ButtonsType.OK_CANCEL,
-                        "Add a property of type:");
+                Gtk.DialogFlags.MODAL,
+                Gtk.MessageType.QUESTION,
+                Gtk.ButtonsType.OK_CANCEL,
+                "Add a property of type:");
             var combo = new Gtk.ComboBoxText();
             (dialog.get_message_area() as Gtk.Box).pack_end(combo,false,false,0);
             combo.show();
@@ -517,7 +563,8 @@ namespace SSHConf
             {
                 case Gtk.ResponseType.OK:
                     string val = combo.get_active_text();
-                    if(val != null) {
+                    if(val != null)
+                    {
                         entry.new_prop(val);
                     }
                     break;
@@ -583,3 +630,4 @@ namespace SSHConf
         }
     }
 }
+
