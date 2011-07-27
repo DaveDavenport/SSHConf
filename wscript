@@ -31,7 +31,8 @@ def build(bld):
 	prog.source = ['sshconf.vala',
 				   'sshconf-entry.vala',
 				   'sshconf-entry-model.vala',
-				   'sshconf-editor.vala']
+				   'sshconf-editor.vala',
+				   'sshconf-properties.vala']
 	# libraries to link against
 	prog.uselib = ['GTK+', 'GLIB', 'GEE']
 	# Vala packages to use
