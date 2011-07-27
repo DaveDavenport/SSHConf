@@ -22,10 +22,10 @@ using Gtk;
 using Gee;
 namespace SSHConf
 {
-    public const string VALUE_YES = "yes";
-    public const string VALUE_NO = "no";
-    public class DefaultEntry : Entry
-    {
+public const string VALUE_YES = "yes";
+public const string VALUE_NO = "no";
+public class DefaultEntry : Entry
+{
         public override void write_entry(GLib.DataOutputStream da) throws GLib.IOError
         {
             try
@@ -33,6 +33,7 @@ namespace SSHConf
                 foreach(var prop in settings)
                 {
                     unowned string value = prop.get_as_string();
+
                     // do not write out values without a name
                     if(value != null && value.length > 0)
                     {
@@ -49,11 +50,11 @@ namespace SSHConf
             }
         }
 
-    }
+}
 
-    /* Class representing a property */
-    public class Property : GLib.Object
-    {
+/* Class representing a property */
+public class Property : GLib.Object
+{
         public unowned Entry entry;
         /* The value */
         private string value =null;
@@ -67,7 +68,8 @@ namespace SSHConf
         public Property(Entry en,string key)
         {
             this.entry = en;
-            for(uint i = 0;i<SSHConf.KEYS.length;i++)
+
+            for(uint i = 0; i<SSHConf.KEYS.length; i++)
             {
                 if(KEYS[i].name.down() == key.down())
                 {
@@ -75,11 +77,14 @@ namespace SSHConf
                     break;
                 }
             }
+
             if(ep == null)
             {
                 GLib.error("Unknown key: %s", key);
             }
-            if(ep.has_default) {
+
+            if(ep.has_default)
+            {
                 value = ep.default_value;
             }
         }
@@ -92,7 +97,7 @@ namespace SSHConf
             value = (val)?VALUE_YES:VALUE_NO;
             GLib.debug("set value: %s", value);
         }
-        public void set_as_string(string val)
+        public void set_as_string(string? val)
         {
             value = val;
         }
@@ -102,6 +107,7 @@ namespace SSHConf
             {
                 return value.down() == VALUE_YES.down();
             }
+
             return false;
         }
         public int get_as_int()
@@ -110,6 +116,7 @@ namespace SSHConf
             {
                 return int.parse(value);
             }
+
             return -1;
         }
         public unowned string? get_as_string()
@@ -133,18 +140,24 @@ namespace SSHConf
             return val;
         }
 
-        public void set_as_path(string val)
+        public void set_as_path(string? val)
         {
+            if(val == null)
+            {
+                value = null;
+                return;
+            }
+
             string homedir = GLib.Environment.get_home_dir()+"/";
             value = val.replace(homedir, "~/");
         }
 
         public signal void removed();
-    }
+}
 
 
-    public class Entry : GLib.Object
-    {
+public class Entry : GLib.Object
+{
         /* Name of the entry */
         private string _name = "";
 
@@ -218,7 +231,8 @@ namespace SSHConf
             }
         }
 
-        public enum ChangedType {
+        public enum ChangedType
+        {
             PROPERTY_ADDED
         }
         public signal void changed(ChangedType what);
@@ -252,7 +266,9 @@ namespace SSHConf
         public void remove_prop(Property prop)
         {
             weak GLib.List<SSHConf.Property> item = settings.find(prop);
-            if(item != null) {
+
+            if(item != null)
+            {
                 Property p =(owned)item.data;
                 settings.delete_link(item);
                 p.removed();
@@ -265,12 +281,15 @@ namespace SSHConf
             try
             {
                 if(!_enabled) da.put_string("#");
+
                 da.put_string("Host ");
                 da.put_string(name);
                 da.put_string("\n");
+
                 if(hostname != null && hostname.length > 0)
                 {
                     if(!_enabled) da.put_string("#");
+
                     da.put_string("\tHostname ");
                     da.put_string(hostname);
                     da.put_string("\n");
@@ -279,9 +298,11 @@ namespace SSHConf
                 foreach(var prop in settings)
                 {
                     unowned string value = prop.get_as_string();
+
                     if(value != null && value.length > 0 )
                     {
                         if(!_enabled) da.put_string("#");
+
                         da.put_string("\t");
                         da.put_string(prop.ep.name);
                         da.put_string(" ");
@@ -301,5 +322,5 @@ namespace SSHConf
         {
             stdout.printf("~Destroy entry\n");
         }
-    }
+}
 }

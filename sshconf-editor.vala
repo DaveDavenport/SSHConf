@@ -401,7 +401,7 @@ namespace SSHConf
             field = new Gtk.FileChooserButton("Select file", Gtk.FileChooserAction.OPEN);
             if(prop.get_as_string() != null)
             {
-                (field as Gtk.FileChooser).set_filename(prop.get_as_path());
+                (field as Gtk.FileChooser).select_filename(prop.get_as_path());
             }
             /* listen to property changes */
             prop.notify["value"].connect((source,spec)=>
@@ -409,7 +409,7 @@ namespace SSHConf
                 if((field as Gtk.FileChooser).get_filename()
                     != prop.get_as_string())
                 {
-                    (field as Gtk.FileChooser).set_filename(prop.get_as_path());
+                    (field as Gtk.FileChooser).select_filename(prop.get_as_path());
                 }
             });
             (field as Gtk.FileChooserButton).file_set.connect((source)=>
