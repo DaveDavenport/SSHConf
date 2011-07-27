@@ -32,7 +32,123 @@ namespace SSHConf
             spacing = 6;
         }
     }
+    /**
+     * DynamicForward
+     */
+    class EditorPropDynamicForward : SSHConf.EditorProp
+    {
+        private Gtk.Entry      local_host;
+        private Gtk.SpinButton local_port;
+        private bool block_update = false;
 
+        public void write_to_property()
+        {
+            block_update = true;
+            string val ="";
+
+            if(local_host.buffer.get_length() > 0)
+            {
+                val += local_host.get_text();
+                val += ":";
+            }
+
+            val += "%i ".printf(local_port.get_value_as_int());
+
+            prop.set_as_string(val);
+
+            block_update = false;
+        }
+
+        public void set_from_property()
+        {
+            block_update = true;
+            if(prop.get_as_string() == null)
+            {
+                local_port.set_value(0);
+                local_host.set_text("");
+                block_update = false;
+                return;
+            }
+            string value = prop.get_as_string();
+
+
+            /* Localhost */
+            var lh = value.split(":");
+            if(lh.length == 1)
+            {
+                local_host.set_text("");
+                local_port.set_value(int.parse(lh[0]));
+            }
+            else
+            {
+                local_host.set_text(lh[0]);
+                local_port.set_value(int.parse(lh[1]));
+            }
+            block_update = false;
+        }
+
+        public EditorPropDynamicForward(SSHConf.Entry en, Property p, Gtk.SizeGroup? sg)
+        {
+            entry = en;
+            this.prop = p;
+
+            this.prop.notify["value"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    set_from_property();
+                }
+            });
+
+            /* build gui */
+            var l = new Label(prop.ep.name);
+            l.set_alignment(0, 0.5f);
+            pack_start(l, false, false, 0);
+            if(sg!=null) sg.add_widget(l);
+
+            // Remove button
+            var remove_but = new Gtk.Button();
+            remove_but.set_image(new Gtk.Image.from_stock("gtk-remove", Gtk.IconSize.MENU));
+            remove_but.set_relief(Gtk.ReliefStyle.NONE);
+            pack_end(remove_but, false, false, 0);
+            /* remove property */
+            remove_but.clicked.connect((source)=>
+            {
+                entry.remove_prop(this.prop);
+            });
+
+            local_port = new Gtk.SpinButton.with_range(1,int.MAX, 1);
+            pack_end(local_port, false, false, 0);
+
+
+            local_host = new Gtk.Entry();
+            pack_end(local_host, false, false, 0);
+
+
+
+            set_from_property();
+
+
+            local_host.notify["text"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    write_to_property();
+                }
+            });
+            local_port.notify["value"].connect((source, spec)=>
+            {
+                if(!block_update)
+                {
+                    write_to_property();
+                }
+            });
+        }
+    }
+
+    /**
+     * LocalForward
+     */
     class EditorPropLocalForward : SSHConf.EditorProp
     {
         private Gtk.Entry      local_host;
@@ -195,6 +311,9 @@ namespace SSHConf
             });
         }
     }
+    /**
+     * Generic
+     */
     class EditorPropGeneric : EditorProp
     {
         private Gtk.Widget field = null;
@@ -387,6 +506,10 @@ namespace SSHConf
                 if(prop.ep.type == PropertyType.LOCAL_FORWARD)
                 {
                     var entry_edit = new EditorPropLocalForward(entry,prop,sg);
+                    prop_vbox.pack_start(entry_edit, false, false, 0);
+                }else if (prop.ep.type == PropertyType.DYNAMIC_FORWARD)
+                {
+                    var entry_edit = new EditorPropDynamicForward(entry,prop,sg);
                     prop_vbox.pack_start(entry_edit, false, false, 0);
                 }
                 else
