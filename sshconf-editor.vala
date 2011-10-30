@@ -321,7 +321,7 @@ namespace SSHConf
         {
             field = new Gtk.Switch();
             (field as Gtk.Switch).set_active(prop.get_as_bool());
-            pack_end(field, false, false, 0);
+            pack_start(field, false, false, 0);
             /* listen to property changes */
             prop.notify["value"].connect((source,spec)=>
             {
@@ -364,7 +364,7 @@ namespace SSHConf
                     (field as Gtk.SpinButton).set_value(prop.get_as_int());
                 }
             });
-            pack_end(field, false, true, 0);
+            pack_start(field, false, true, 0);
         }
         public void setup_as_string()
         {
@@ -394,7 +394,7 @@ namespace SSHConf
                 }
             });
 
-            pack_end(field, false, true, 0);
+            pack_start(field, true, true, 0);
         }
         public void setup_as_filename()
         {
@@ -420,7 +420,7 @@ namespace SSHConf
                     prop.set_as_path(fn);
                 }
             });
-            pack_end(field, false, true, 0);
+            pack_start(field, true, true, 0);
         }
         public EditorPropGeneric(SSHConf.Entry en, Property p, Gtk.SizeGroup? sg)
         {
