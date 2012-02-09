@@ -84,7 +84,7 @@ namespace SSHConf
         /**
          * Get path from iter
          */
-        public Gtk.TreePath get_path(Gtk.TreeIter iter)
+        public Gtk.TreePath? get_path(Gtk.TreeIter iter)
         {
             int index = (int)(iter.user_data2);
 

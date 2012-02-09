@@ -186,6 +186,7 @@ namespace SSHConf
 
             /* button box */
             var hbox = new Gtk.Toolbar();
+			hbox.toolbar_style = Gtk.ToolbarStyle.ICONS;
             /* add */
             var icon = new GLib.ThemedIcon.with_default_fallbacks( "list-add-symbolic");
             var image = new Gtk.Image.from_gicon(icon, Gtk.IconSize.SMALL_TOOLBAR);

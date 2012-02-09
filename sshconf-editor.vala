@@ -624,7 +624,7 @@ namespace SSHConf
                     context2.add_class("view");
 
                     Gdk.RGBA bg_color;
-                    context2.get_background_color(Gtk.StateFlags.NORMAL, bg_color);
+                    bg_color = context2.get_background_color(Gtk.StateFlags.NORMAL);
                     source.override_background_color(Gtk.StateFlags.NORMAL, bg_color);
             });
 
@@ -638,6 +638,8 @@ namespace SSHConf
 
             /* button box */
             var bbox = new Gtk.Toolbar();
+
+			bbox.toolbar_style = Gtk.ToolbarStyle.ICONS;
             /**
              * Setup the styles for the button box
              */
