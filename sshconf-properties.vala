@@ -267,6 +267,12 @@ public const EntryProperty[] KEYS =
         true, VALUE_NO,
         false
     },
+    {
+        "PubkeyAuthentication",
+        PropertyType.BOOL,
+        false, VALUE_NO,
+        false
+    },
     // zero or more: “bsdauth”, “pam”, and “skey”.
     {
         "KbdInteractiveDevices",
