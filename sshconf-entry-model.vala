@@ -59,7 +59,7 @@ namespace SSHConf
             return Gtk.TreeModelFlags.LIST_ONLY;
         }
 
-        public bool get_iter(out Gtk.TreeIter iter, Gtk.TreePath path)
+        public bool get_iter(ref Gtk.TreeIter iter, Gtk.TreePath path)
         {
             int[] indices = path.get_indices ();
             unowned GLib.List<Entry> en = entries.nth(indices[0]);
@@ -118,10 +118,10 @@ namespace SSHConf
          * Get the children of iter %parent (always false)
          * if parent is null return first node
          */
-        public bool iter_children(out Gtk.TreeIter iter, Gtk.TreeIter? parent)
+        public bool iter_children(ref Gtk.TreeIter iter, Gtk.TreeIter? parent)
         {
             if(parent != null) return false;
-            return this.iter_first(out iter);
+            return this.iter_first(ref iter);
         }
         public bool iter_has_child(Gtk.TreeIter iter)
         {
@@ -143,7 +143,7 @@ namespace SSHConf
             iter.user_data2 = ((int)(iter.user_data2)+1).to_pointer();
             return true;
         }
-        public bool iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? parent, int n)
+        public bool iter_nth_child(ref Gtk.TreeIter iter, Gtk.TreeIter? parent, int n)
         {
             // no children
             if(parent != null) return false;
@@ -156,7 +156,7 @@ namespace SSHConf
 
             return true;
         }
-        public bool iter_parent(out Gtk.TreeIter iter, Gtk.TreeIter child)
+        public bool iter_parent(ref Gtk.TreeIter iter, Gtk.TreeIter child)
         {
             return false;
         }
@@ -167,7 +167,7 @@ namespace SSHConf
         public void unref_node(Gtk.TreeIter iter)
         {
         }
-        public bool iter_first(out Gtk.TreeIter iter)
+        public bool iter_first(ref Gtk.TreeIter iter)
         {
             if(entries.length() == 0) return false;
             iter.stamp = this.stamp;
@@ -240,7 +240,7 @@ namespace SSHConf
                 list_copy.append(a);
             }
             list_copy.sort(sort_entries_by_name);
-        
+
             int[] new_order = new int[list_copy.length()];
             int i  =0;
             foreach(Entry a in list_copy)

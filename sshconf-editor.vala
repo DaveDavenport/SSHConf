@@ -493,7 +493,6 @@ namespace SSHConf
 
         private void fill_settings_list()
         {
-            int i = 0;
             /* Clear the list */
             foreach(var child in prop_vbox.get_children())
             {
