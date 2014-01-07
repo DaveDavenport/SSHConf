@@ -44,7 +44,7 @@ namespace SSHConf
         private Gtk.TreeView tree;
         private Gtk.TreeModel model;
         private Gtk.Widget editor = null;
-        private Gtk.HBox main_box = null;
+        private Gtk.Box main_box = null;
 
         private Entry default_settings = new DefaultEntry();
 
@@ -157,10 +157,10 @@ namespace SSHConf
             this.add_button("gtk-save", -1);
 
             /* The internal */
-            main_box = new Gtk.HBox(false, 6);
+            main_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
             (this.get_content_area() as Gtk.Box).pack_end(main_box, true, true, 0);
             main_box.set_border_width(8);
-            var box = new Gtk.VBox(false, 0);
+            var box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
             box.set_size_request(250, -1);
             main_box.pack_start(box, false, false, 0);
 

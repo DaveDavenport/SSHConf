@@ -23,12 +23,13 @@ using Gee;
 
 namespace SSHConf
 {
-    class EditorProp : Gtk.HBox
+    class EditorProp : Gtk.Box
     {
         protected Entry entry;
         protected Property prop;
         construct
         {
+            orientation = Gtk.Orientation.HORIZONTAL;
             spacing = 6;
         }
     }
@@ -253,7 +254,8 @@ namespace SSHConf
                 entry.remove_prop(this.prop);
             });
 
-            var hbox = new Gtk.VBox(true, 6);
+            var hbox = new Gtk.Box(Gtk.Orientation.VERTICAL,6);
+            hbox.set_homogeneous(true);
             pack_end(hbox,false, false,0);
             local_port = new Gtk.SpinButton.with_range(1,int.MAX, 1);
             hbox.pack_start(local_port, false, false, 0);
@@ -261,7 +263,8 @@ namespace SSHConf
             remote_port = new Gtk.SpinButton.with_range(1,int.MAX,1);
             hbox.pack_start(remote_port, false, false, 0);
 
-            hbox = new Gtk.VBox(true, 6);
+            hbox = new Gtk.Box(Gtk.Orientation.VERTICAL,6);
+            hbox.set_homogeneous(true);
             pack_end(hbox,false, false,0);
             local_host = new Gtk.Entry();
             hbox.pack_start(local_host, false, false, 0);
@@ -270,7 +273,8 @@ namespace SSHConf
             hbox.pack_start(remote_host, false, false, 0);
 
             /* Label */
-            hbox = new Gtk.VBox(true, 6);
+            hbox = new Gtk.Box(Gtk.Orientation.VERTICAL,6);
+            hbox.set_homogeneous(true);
             pack_end(hbox,false, false,0);
             l = new Label("Local:");
             l.set_alignment(0, 0.5f);
@@ -473,7 +477,7 @@ namespace SSHConf
     /**
      * Edit an Entry
      */
-    class Editor : Gtk.VBox
+    class Editor : Gtk.Box
     {
         private Entry entry;
         private unowned Gtk.Window parent_window = null;
@@ -485,11 +489,11 @@ namespace SSHConf
 
         private Gtk.Label title_label = null;
 
-        private Gtk.HBox enable_hbox = null;
-        private Gtk.HBox name_hbox = null;
-        private Gtk.HBox hostname_hbox = null;
+        private Gtk.Box enable_hbox = null;
+        private Gtk.Box name_hbox = null;
+        private Gtk.Box hostname_hbox = null;
 
-        private Gtk.VBox prop_vbox = null;
+        private Gtk.Box prop_vbox = null;
 
         private void fill_settings_list()
         {
@@ -535,7 +539,7 @@ namespace SSHConf
             /**
              * Enable button
              */
-            enable_hbox = new Gtk.HBox(false,6);
+            enable_hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL,6);
             enable_switch = new Gtk.Switch();
             var ali = new Gtk.Alignment(0.0f, 0.5f, 0.0f, 0.0f);
             ali.add(enable_switch);
@@ -553,7 +557,7 @@ namespace SSHConf
             });
 
             /* Name entry */
-            name_hbox = new Gtk.HBox(false,6);
+            name_hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL,6);
             label = new Label("Name");
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
@@ -579,7 +583,7 @@ namespace SSHConf
             this.pack_start(name_hbox, false, false, 3);
 
             /* Hostname entry */
-            hostname_hbox = new Gtk.HBox(false,6);
+            hostname_hbox = new Gtk.Box(Gtk.Orientation.HORIZONTAL,6);
             label = new Label("Hostname");
             SizeGroup.add_widget(label);
             label.set_alignment(1f, 0.5f);
@@ -627,7 +631,7 @@ namespace SSHConf
                     source.override_background_color(Gtk.StateFlags.NORMAL, bg_color);
             });
 
-            prop_vbox = new Gtk.VBox(false, 6);
+            prop_vbox = new Gtk.Box(Gtk.Orientation.VERTICAL, 6);
             var alivp = new Gtk.Alignment(0,0,1,0);
             alivp.set_padding(6,6,12,6);
             alivp.add(prop_vbox);
@@ -704,6 +708,7 @@ namespace SSHConf
         }
         public Editor (Gtk.Window parent, Entry entry)
         {
+            this.orientation = Gtk.Orientation.VERTICAL;
             this.parent_window = parent;
             this.entry = entry;
 
